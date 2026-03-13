@@ -4,6 +4,9 @@ LABEL maintainer="Free5GC <support@free5gc.org>"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN find /etc/apt -type f \( -name '*.list' -o -name '*.sources' \) \
+    -exec sed -i 's|http://deb.debian.org|https://deb.debian.org|g; s|http://security.debian.org|https://security.debian.org|g' {} +
+
 # Install dependencies
 RUN apt-get update \
     && apt-get install libsctp-dev lksctp-tools iproute2 -y \
@@ -15,6 +18,9 @@ RUN apt-get update \
 FROM bitnami/minideb:trixie
 
 ENV DEBIAN_FRONTEND=noninteractive
+
+RUN find /etc/apt -type f \( -name '*.list' -o -name '*.sources' \) \
+    -exec sed -i 's|http://deb.debian.org|https://deb.debian.org|g; s|http://security.debian.org|https://security.debian.org|g' {} +
 
 RUN apt-get update \
     && apt-get install libsctp-dev lksctp-tools iproute2 iputils-ping procps psmisc tcpdump sudo -y \

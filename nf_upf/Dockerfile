@@ -14,6 +14,9 @@ ENV F5GC_MODULE=upf
 ENV DEBIAN_FRONTEND=noninteractive
 ARG DEBUG_TOOLS
 
+RUN find /etc/apt -type f \( -name '*.list' -o -name '*.sources' \) \
+    -exec sed -i 's|http://deb.debian.org|https://deb.debian.org|g; s|http://security.debian.org|https://security.debian.org|g' {} +
+
 # Install debug tools ~ 100MB (if DEBUG_TOOLS is set to true)
 RUN if [ "$DEBUG_TOOLS" = "true" ] ; then apt-get update && apt-get install -y vim strace net-tools iputils-ping curl netcat tcpdump; fi
 
