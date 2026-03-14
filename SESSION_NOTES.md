@@ -41,7 +41,8 @@ UE config used for data session:
 - DNN: `internet`
 - S-NSSAI: `SST: 1, SD: 010203`
 
-Subscriber provisioning (`provision.js`):
+Subscriber provisioning:
+- Provisioned manually via the **WebUI** (http://localhost:5000).
 - Uses `OPC` auth data.
 - Maps `imsi-208930000000001` to the `internet` DNN and slice `01010203`.
 
@@ -50,11 +51,6 @@ Subscriber provisioning (`provision.js`):
 ### Start Full Stack
 ```bash
 docker compose up -d
-```
-
-### Provision Subscriber
-```bash
-docker exec -i mongodb mongo < provision.js
 ```
 
 ### Trigger UE Registration & PDU Session
