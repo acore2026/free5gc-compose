@@ -8,8 +8,7 @@ LABEL maintainer="Free5GC <support@free5gc.org>"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN find /etc/apt -type f \( -name '*.list' -o -name '*.sources' \) \
-    -exec sed -i 's|http://deb.debian.org|https://deb.debian.org|g; s|http://security.debian.org|https://security.debian.org|g' {} +
+
 
 # Install dependencies
 RUN apt-get update \
