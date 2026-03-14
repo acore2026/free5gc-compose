@@ -3,6 +3,8 @@ version: "3.8"
 services:
   free5gc-upf:
     container_name: upf
+    sysctls:
+      - net.ipv4.ip_forward=1
     image: free5gc/upf:v4.2.1
     command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
     volumes:

@@ -2,55 +2,30 @@
 
 ## Host Facts
 
-- Repo path: `/home/acore/proj/go/free5gc-compose`
-- Host Docker CLI supports `docker-compose` v1.29.2, not `docker compose`.
-- Host kernel: `6.6.87.2-microsoft-standard-WSL2`
-- `gtp5g` kernel module is not available on this host.
-- Result: full UPF/user-plane testing is blocked here, but control-plane registration works.
+- Repo path: `/home/ming/proj/go/free5gc-compose`
+- Host Docker CLI supports `docker compose` (V2).
+- Host kernel: `6.8.0-106-generic` (Ubuntu 24.04)
+- `gtp5g` kernel module: **Installed and available** (version `v0.9.16`).
+- Result: **Full end-to-end 5G data session is working.**
 
 ## Local Repo Changes Made
 
 - Added registration-only stack:
-  - [`docker-compose-registration.yaml`](/home/acore/proj/go/free5gc-compose/docker-compose-registration.yaml)
+  - [`docker-compose-registration.yaml`](docker-compose-registration.yaml)
 - Added UE config without initial PDU sessions:
-  - [`config/uecfg-registration.yaml`](/home/acore/proj/go/free5gc-compose/config/uecfg-registration.yaml)
-- Patched Debian-based Dockerfiles to rewrite apt sources to HTTPS before package install:
-  - [`base/Dockerfile`](/home/acore/proj/go/free5gc-compose/base/Dockerfile)
-  - [`base/Dockerfile.nf.webconsole`](/home/acore/proj/go/free5gc-compose/base/Dockerfile.nf.webconsole)
-  - [`nf_upf/Dockerfile`](/home/acore/proj/go/free5gc-compose/nf_upf/Dockerfile)
-  - [`webui/Dockerfile`](/home/acore/proj/go/free5gc-compose/webui/Dockerfile)
-  - [`ueransim/Dockerfile`](/home/acore/proj/go/free5gc-compose/ueransim/Dockerfile)
-  - [`n3iwue/Dockerfile`](/home/acore/proj/go/free5gc-compose/n3iwue/Dockerfile)
+  - [`config/uecfg-registration.yaml`](config/uecfg-registration.yaml)
+- Patched Debian-based Dockerfiles to rewrite apt sources to HTTPS before package install.
+- **Updated `docker-compose.yaml`**: Added `sysctls: [net.ipv4.ip_forward=1]` to the `free5gc-upf` service to enable NAT for UE traffic.
 
-## Registration-Only Topology
+## Topology Options
 
-Included services:
+### 1. Registration-Only (Control Plane)
+Included: `mongodb`, `nrf`, `amf`, `ausf`, `nssf`, `pcf`, `udm`, `udr`, `webui`, `ueransim` (gNB).
+Excluded: `upf`, `smf`, etc.
 
-- `mongodb`
-- `nrf`
-- `amf`
-- `ausf`
-- `nssf`
-- `pcf`
-- `udm`
-- `udr`
-- `webui`
-- `ueransim` (gNB container)
-
-Excluded services:
-
-- `upf`
-- `smf`
-- `n3iwf`
-- `tngf`
-- `nef`
-- `chf`
-- `n3iwue`
-
-Important note:
-
-- Removing `PCF` prevented registration completion.
-- Final working registration-only stack still needs `PCF`, but does not need `UPF`.
+### 2. Full 5G Core (User Plane Supported)
+Included: All services in `docker-compose.yaml`.
+Requires: `gtp5g` kernel module on the host and `ip_forward` enabled in the UPF container.
 
 ## WebUI Credentials
 
@@ -60,81 +35,60 @@ Important note:
 
 ## Test UE / Subscriber Values
 
-UE config used by the running stack:
-
-- Mounted file: [`config/uecfg-registration.yaml`](/home/acore/proj/go/free5gc-compose/config/uecfg-registration.yaml)
-- Mounted in container as `/ueransim/config/uecfg.yaml`
-
-Key UE identity:
-
+UE config used for data session:
+- Mounted file: [`config/uecfg.yaml`](config/uecfg.yaml)
 - SUPI: `imsi-208930000000001`
-- MCC: `208`
-- MNC: `93`
-- AMF: `8000`
-- Key: `8baf473f2f8fd09487cccbd7097c6862`
-- OP type: `OPC`
-- OPC: `8e27b6af0e692e750f32667a3b14605d`
+- DNN: `internet`
+- S-NSSAI: `SST: 1, SD: 010203`
 
-Subscriber provisioning note:
-
-- The subscriber must use `opc.opcValue = 8e27...`
-- `milenage.op.opValue` must be empty for this UE, because the UE config uses `opType: OPC`.
+Subscriber provisioning (`provision.js`):
+- Uses `OPC` auth data.
+- Maps `imsi-208930000000001` to the `internet` DNN and slice `01010203`.
 
 ## Commands That Worked
 
-Start registration-only stack:
-
+### Start Full Stack
 ```bash
-cd /home/acore/proj/go/free5gc-compose
-docker-compose -f docker-compose-registration.yaml up -d
+docker compose up -d
 ```
 
-Trigger initial registration:
+### Provision Subscriber
+```bash
+docker exec -i mongodb mongo < provision.js
+```
 
+### Trigger UE Registration & PDU Session
 ```bash
 docker exec -it ueransim ./nr-ue -c ./config/uecfg.yaml
 ```
 
-Restart UE to trigger a fresh initial registration:
-
+### Verify User Plane Connectivity
+Once the UE is registered and `uesimtun0` is created:
 ```bash
-docker exec -it ueransim pkill nr-ue
-docker exec -it ueransim ./nr-ue -c ./config/uecfg.yaml
-```
-
-Useful logs:
-
-```bash
-docker logs -f amf
-docker logs -f ueransim
-docker logs -f pcf
+# Check interface
+docker exec ueransim ip addr show uesimtun0
+# Ping through 5G tunnel
+docker exec ueransim ping -I uesimtun0 8.8.8.8
 ```
 
 ## Expected Success Signals
 
 UE log:
+- `Registration procedure... [SUCCESS]`
+- `PDU Session establishment procedure... [SUCCESS]`
+- `Connection setup for PDU session [1] is successful, TUN interface [uesimtun0] is up`
 
-- `Sending Initial Registration`
-- `Registration accept received`
-- `Initial Registration is successful`
+SMF log:
+- `UPF(10.100.200.14) setup association`
+- `HandlePDUSessionSMContextCreate`
 
-AMF log:
+## Failure Modes Resolved
 
-- `Handle Registration Request`
-- `Send Registration Accept`
-- `Handle Registration Complete`
-- transition to `Registered`
-
-## Failure Modes Seen During This Session
-
-- Without `UPF`: user plane is unavailable, but registration can still work.
-- Without `PCF`: AMF failed initial registration completion with `AMF can not select an PCF by NRF`.
-- Wrong subscriber auth format:
-  - First failure: `Mac Failure`
-  - Second partial fix: `Synch Failure`
-  - Final fix: correct `OPC` subscriber auth data
+- **`gtp5g` Version Mismatch**: UPF (v4.2.1) required `gtp5g` between `0.9.5` and `0.10.0`. Installed `v0.9.16`.
+- **SMF Panic (`invalid argument to Intn`)**: Occurred when SMF attempted UPF selection before PFCP association was fully established. Fixed by ensuring UPF is healthy and associated.
+- **User Plane Timeout**: Fixed by adding `net.ipv4.ip_forward=1` to the UPF container's sysctls.
 
 ## Current Conclusion
 
-- On this WSL2 host, we can test initial registration successfully.
-- On this host, we cannot test UPF-dependent user plane unless `gtp5g` is available on a supported Linux kernel.
+- The environment is fully capable of end-to-end 5G testing.
+- End-to-end data traffic (UE -> gNB -> UPF -> Internet) is verified and working.
