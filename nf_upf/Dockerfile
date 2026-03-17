@@ -14,7 +14,8 @@ ENV F5GC_MODULE=upf
 ENV DEBIAN_FRONTEND=noninteractive
 ARG DEBUG_TOOLS
 
-
+# Keep Debian's default HTTP mirrors. In proxied environments the forced HTTPS
+# rewrite can fail certificate validation and break apt during image builds.
 
 # Install debug tools ~ 100MB (if DEBUG_TOOLS is set to true)
 RUN if [ "$DEBUG_TOOLS" = "true" ] ; then apt-get update && apt-get install -y vim strace net-tools iputils-ping curl netcat tcpdump; fi

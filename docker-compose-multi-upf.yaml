@@ -1,21 +1,44 @@
-version: "3.8"
+x-upf-common: &upf-common
+  image: free5gc/upf:v4.2.1
+  command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
+  sysctls:
+    - net.ipv4.ip_forward=1
+  cap_add:
+    - NET_ADMIN
 
 services:
-  free5gc-upf:
-    container_name: upf
-    sysctls:
-      - net.ipv4.ip_forward=1
-    image: free5gc/upf:v4.2.1.ac
-    command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
+  free5gc-upf1:
+    <<: *upf-common
+    container_name: upf1
     volumes:
-      - ./config/upfcfg.yaml:/free5gc/config/upfcfg.yaml
+      - ./config/multi-upf/upfcfg-upf1.yaml:/free5gc/config/upfcfg.yaml
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
-    cap_add:
-      - NET_ADMIN
     networks:
       privnet:
         aliases:
-          - upf.free5gc.org
+          - upf1.free5gc.org
+
+  free5gc-upf2:
+    <<: *upf-common
+    container_name: upf2
+    volumes:
+      - ./config/multi-upf/upfcfg-upf2.yaml:/free5gc/config/upfcfg.yaml
+      - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
+    networks:
+      privnet:
+        aliases:
+          - upf2.free5gc.org
+
+  free5gc-upf3:
+    <<: *upf-common
+    container_name: upf3
+    volumes:
+      - ./config/multi-upf/upfcfg-upf3.yaml:/free5gc/config/upfcfg.yaml
+      - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
+    networks:
+      privnet:
+        aliases:
+          - upf3.free5gc.org
 
   db:
     container_name: mongodb
@@ -125,12 +148,12 @@ services:
   free5gc-smf:
     container_name: smf
     image: free5gc/smf:v4.2.1
-    command: ./smf -c ./config/smfcfg.yaml -u ./config/uerouting.yaml
+    command: ./smf -c ./config/smfcfg.yaml
     expose:
       - "8000"
     volumes:
-      - ./config/smfcfg.yaml:/free5gc/config/smfcfg.yaml
-      - ./config/uerouting.yaml:/free5gc/config/uerouting.yaml
+      - ./config/multi-upf/smfcfg.yaml:/free5gc/config/smfcfg.yaml
+      - ./config/multi-upf/uerouting.yaml:/free5gc/config/uerouting.yaml
       - ./cert:/free5gc/cert
     environment:
       GIN_MODE: release
@@ -140,7 +163,9 @@ services:
           - smf.free5gc.org
     depends_on:
       - free5gc-nrf
-      - free5gc-upf
+      - free5gc-upf1
+      - free5gc-upf2
+      - free5gc-upf3
 
   free5gc-udm:
     container_name: udm
@@ -207,21 +232,23 @@ services:
     image: free5gc/n3iwf:v4.2.1
     command: ./n3iwf -c ./config/n3iwfcfg.yaml
     volumes:
-      - ./config/n3iwfcfg.yaml:/free5gc/config/n3iwfcfg.yaml
-      - ./config/n3iwf-ipsec.sh:/free5gc/n3iwf-ipsec.sh
+      - ./config/multi-upf/n3iwfcfg.yaml:/free5gc/config/n3iwfcfg.yaml
+      - ./config/multi-upf/n3iwf-ipsec.sh:/free5gc/n3iwf-ipsec.sh
     environment:
       GIN_MODE: release
     cap_add:
       - NET_ADMIN
     networks:
       privnet:
-        ipv4_address: 10.100.200.15
+        ipv4_address: 10.100.200.240
         aliases:
           - n3iwf.free5gc.org
     depends_on:
       - free5gc-amf
       - free5gc-smf
-      - free5gc-upf
+      - free5gc-upf1
+      - free5gc-upf2
+      - free5gc-upf3
 
   free5gc-tngf:
     container_name: tngf
@@ -238,7 +265,9 @@ services:
     depends_on:
       - free5gc-amf
       - free5gc-smf
-      - free5gc-upf
+      - free5gc-upf1
+      - free5gc-upf2
+      - free5gc-upf3
 
   free5gc-nef:
     container_name: nef
@@ -284,10 +313,13 @@ services:
   ueransim:
     container_name: ueransim
     image: free5gc/ueransim:latest
-    command: ./nr-gnb -c ./config/gnbcfg.yaml
+    command: >
+      sh -c "./nr-gnb -c ./config/gnbcfg.yaml &
+      sleep 5 &&
+      ./nr-ue -c ./config/uecfg.yaml"
     volumes:
       - ./config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml
-      - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
+      - ./config/uecfg-ulcl.yaml:/ueransim/config/uecfg.yaml
     cap_add:
       - NET_ADMIN
     devices:
@@ -298,14 +330,16 @@ services:
           - gnb.free5gc.org
     depends_on:
       - free5gc-amf
-      - free5gc-upf
+      - free5gc-upf1
+      - free5gc-upf2
+      - free5gc-upf3
 
   n3iwue:
     container_name: n3iwue
     image: free5gc/n3iwue:latest
     command: bash -c "ip route del default && ip route add default via 10.100.200.1 dev eth0 metric 203 && sleep infinity"
     volumes:
-      - ./config/n3uecfg.yaml:/n3iwue/config/n3ue.yaml
+      - ./config/multi-upf/n3uecfg.yaml:/n3iwue/config/n3ue.yaml
     cap_add:
       - NET_ADMIN
     devices:

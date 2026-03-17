@@ -1,0 +1,65 @@
+info:
+  version: 1.0.5
+  description: N3IWF configuration for the generic multi-UPF deployment
+
+configuration:
+  n3iwfInformation:
+    globalN3IWFID:
+      plmnID:
+        mcc: 208
+        mnc: 93
+      n3iwfID: 135
+    name: free5GC_N3IWF
+    supportedTAList:
+      - tac: 000001
+        broadcastPlmnList:
+          - plmnID:
+              mcc: 208
+              mnc: 93
+            taiSliceSupportList:
+              - snssai:
+                  sst: 1
+                  sd: 010203
+              - snssai:
+                  sst: 1
+                  sd: 112233
+
+  amfSCTPAddresses:
+    - ip:
+        - amf.free5gc.org
+      port: 38412
+  nasTcpPort: 20000
+
+  ikeBindAddress: 10.100.200.240
+  ipSecTunnelAddress: 10.0.0.1
+  ueIpAddressRange: 10.0.0.0/24
+  xfrmInterfaceName: xfrmi
+  xfrmInterfaceID: 1
+
+  n3iwfGtpBindAddress: 10.100.200.240
+
+  fqdn: n3iwf.free5gc.org
+
+  privateKey: cert/n3iwf.key
+  certificateAuthority: cert/n3iwf.pem
+  certificate: cert/n3iwf.pem
+
+  livenessCheck:
+    enable: true
+    transFreq: 60s
+    maxRetryTimes: 4
+
+  metrics:
+    enable: false
+    scheme: http
+    bindingIPv4: n3iwf.free5gc.org
+    port: 9091
+    tls:
+      pem: cert/n3iwf.pem
+      key: cert/n3iwf.key
+    namespace: free5gc
+
+logger:
+  enable: true
+  level: info
+  reportCaller: false
