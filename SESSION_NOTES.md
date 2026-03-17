@@ -2,7 +2,7 @@
 
 ## Host Facts
 
-- Repo path: `/home/ming/proj/go/free5gc-compose`
+- Repo path: `/home/acore/proj/go/free5gc-compose`
 - Host Docker CLI supports `docker compose` (V2).
 - Host kernel: `6.8.0-106-generic` (Ubuntu 24.04)
 - `gtp5g` kernel module: **Installed and available** (version `v0.9.16`).
@@ -10,20 +10,12 @@
 
 ## Local Repo Changes Made
 
-- Added registration-only stack:
-  - [`docker-compose-registration.yaml`](docker-compose-registration.yaml)
-- Added UE config without initial PDU sessions:
-  - [`config/uecfg-registration.yaml`](config/uecfg-registration.yaml)
 - Patched Debian-based Dockerfiles to rewrite apt sources to HTTPS before package install.
 - **Updated `docker-compose.yaml`**: Added `sysctls: [net.ipv4.ip_forward=1]` to the `free5gc-upf` service to enable NAT for UE traffic.
 
-## Topology Options
+## Topology
 
-### 1. Registration-Only (Control Plane)
-Included: `mongodb`, `nrf`, `amf`, `ausf`, `nssf`, `pcf`, `udm`, `udr`, `webui`, `ueransim` (gNB).
-Excluded: `upf`, `smf`, etc.
-
-### 2. Full 5G Core (User Plane Supported)
+### Full 5G Core (User Plane Supported)
 Included: All services in `docker-compose.yaml`.
 Requires: `gtp5g` kernel module on the host and `ip_forward` enabled in the UPF container.
 
@@ -42,7 +34,7 @@ UE config used for data session:
 - S-NSSAI: `SST: 1, SD: 010203`
 
 Subscriber provisioning:
-- Provisioned manually via the **WebUI** (http://localhost:5000).
+- Provisioned manually via the **WebUI** (http://localhost:5000) or MongoDB script.
 - Uses `OPC` auth data.
 - Maps `imsi-208930000000001` to the `internet` DNN and slice `01010203`.
 
@@ -50,7 +42,7 @@ Subscriber provisioning:
 
 ### Start Full Stack
 ```bash
-docker compose up -d
+docker-compose up -d
 ```
 
 ### Trigger UE Registration & PDU Session
