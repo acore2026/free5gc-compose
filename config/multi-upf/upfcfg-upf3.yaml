@@ -16,18 +16,22 @@ sbi:
   port: 8000
 
 gtpu:
-  forwarder: gtp5g
+  forwarder: userspace
   ifList:
     - addr: upf3.free5gc.org
       type: N3
-    - addr: upf3.free5gc.org
-      type: N9
+  userspace:
+    workers: 4
+    queueSize: 1024
+    tunName: upfusr3
+    tunMtu: 1400
 
 dnnList:
   - dnn: internet
     cidr: 10.62.0.0/16
+    natifname: eth0
 
 logger:
   enable: true
-  level: info
+  level: debug
   reportCaller: false

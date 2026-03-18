@@ -3,6 +3,7 @@ version: "3.8"
 services:
   free5gc-i-upf:
     container_name: i-upf
+    image: free5gc/upf:v4.2.1.ac
     build:
       context: ./nf_upf
       args:
@@ -20,6 +21,7 @@ services:
 
   free5gc-psa-upf:
     container_name: psa-upf
+    image: free5gc/upf:v4.2.1.ac
     build:
       context: ./nf_upf
       args:

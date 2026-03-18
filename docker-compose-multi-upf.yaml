@@ -1,10 +1,12 @@
 x-upf-common: &upf-common
-  image: free5gc/upf:v4.2.1
+  image: free5gc/upf:v4.2.1.ac
   command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
   sysctls:
     - net.ipv4.ip_forward=1
   cap_add:
     - NET_ADMIN
+  devices:
+    - /dev/net/tun:/dev/net/tun
 
 services:
   free5gc-upf1:
@@ -15,6 +17,7 @@ services:
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
     networks:
       privnet:
+        ipv4_address: 10.100.200.20
         aliases:
           - upf1.free5gc.org
 
@@ -26,6 +29,7 @@ services:
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
     networks:
       privnet:
+        ipv4_address: 10.100.200.21
         aliases:
           - upf2.free5gc.org
 
@@ -37,6 +41,7 @@ services:
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
     networks:
       privnet:
+        ipv4_address: 10.100.200.22
         aliases:
           - upf3.free5gc.org
 
@@ -148,15 +153,19 @@ services:
   free5gc-smf:
     container_name: smf
     image: free5gc/smf:v4.2.1
-    command: ./smf -c ./config/smfcfg.yaml
+    command: >
+      sh -c "chmod +x /free5gc/render-smfcfg.sh &&
+      /free5gc/render-smfcfg.sh \"$${ACTIVE_UPF:-UPF1}\" > /free5gc/config/smfcfg.rendered.yaml &&
+      ./smf -c ./config/smfcfg.rendered.yaml"
     expose:
       - "8000"
     volumes:
-      - ./config/multi-upf/smfcfg.yaml:/free5gc/config/smfcfg.yaml
       - ./config/multi-upf/uerouting.yaml:/free5gc/config/uerouting.yaml
+      - ./config/multi-upf/render-smfcfg.sh:/free5gc/render-smfcfg.sh
       - ./cert:/free5gc/cert
     environment:
       GIN_MODE: release
+      ACTIVE_UPF: ${ACTIVE_UPF:-UPF1}
     networks:
       privnet:
         aliases:
