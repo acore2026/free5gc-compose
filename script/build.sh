@@ -2,7 +2,7 @@
 ARCH=${1-"x86_64"}
 
 cd base
-git clone --recursive -j `nproc` https://github.com/free5gc/free5gc.git
+git clone --recursive -j `nproc` https://github.com/acore2026/free5gc.git
 
 cd -
 

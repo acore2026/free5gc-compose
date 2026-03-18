@@ -8,10 +8,10 @@ ADDITIONAL_IMAGES="ueransim n3iwue"
 cd base
 
 if [ "xlatest" == "x$TAG" ]; then
-    git clone --recursive -j "$(nproc)" https://github.com/free5gc/free5gc.git
+    git clone --recursive -j "$(nproc)" https://github.com/acore2026/free5gc.git
 else
     TAG=$(echo "$TAG" | sed -e "s/refs\/tags\///g")
-    git clone --recursive -b "${TAG}" -j "$(nproc)" https://github.com/free5gc/free5gc.git
+    git clone --recursive -b "${TAG}" -j "$(nproc)" https://github.com/acore2026/free5gc.git
 fi
 
 cd -

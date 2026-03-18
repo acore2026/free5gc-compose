@@ -1,6 +1,6 @@
 # free5GC compose
 
-This repository is a docker compose version of [free5GC](https://github.com/free5gc/free5gc) for stage 3. It's inspired by [free5gc-docker-compose](https://github.com/calee0219/free5gc-docker-compose) and also reference to [docker-free5gc](https://github.com/abousselmi/docker-free5gc).
+This repository is a docker compose version of [free5GC](https://github.com/acore2026/free5gc) for stage 3. It's inspired by [free5gc-docker-compose](https://github.com/calee0219/free5gc-docker-compose) and also reference to [docker-free5gc](https://github.com/abousselmi/docker-free5gc).
 
 You can setup your own config in [config](./config) folder and [docker-compose.yaml](docker-compose.yaml)
 
@@ -10,7 +10,7 @@ You can setup your own config in [config](./config) folder and [docker-compose.y
 - [Docker Engine](https://docs.docker.com/engine/install): needed to run the Free5GC containers
 - [Docker Compose v2](https://docs.docker.com/compose/install): needed to bootstrap the free5GC stack
 
-**Note: AVX for MongoDB**: some HW does not support MongoDB releases above`4.4` due to use of the new AVX instructions set. To verify if your CPU is compatible you can check CPU flags by running `grep avx /proc/cpuinfo`. A workaround is suggested [here](https://github.com/free5gc/free5gc-compose/issues/30#issuecomment-897627049).
+**Note: AVX for MongoDB**: some HW does not support MongoDB releases above`4.4` due to use of the new AVX instructions set. To verify if your CPU is compatible you can check CPU flags by running `grep avx /proc/cpuinfo`. A workaround is suggested [here](https://github.com/acore2026/free5gc-compose/issues/30#issuecomment-897627049).
 
 ## Start free5gc
 
@@ -26,12 +26,12 @@ docker compose pull
 
 ```bash
 # Clone the project
-git clone https://github.com/free5gc/free5gc-compose.git
+git clone https://github.com/acore2026/free5gc-compose.git
 cd free5gc-compose
 
 # clone free5gc sources
 cd base
-git clone --recursive -j `nproc` https://github.com/free5gc/free5gc.git
+git clone --recursive -j `nproc` https://github.com/acore2026/free5gc.git
 cd ..
 
 # Build the images
@@ -81,7 +81,7 @@ Please refer to the [Troubleshooting](./TROUBLESHOOTING.md) for more troubleshoo
 
 The integration with the [UERANSIM](https://github.com/aligungr/UERANSIM) eNB/UE simulator is documented [here](https://free5gc.org/guide/5-install-ueransim/).
 
-This [issue](https://github.com/free5gc/free5gc-compose/issues/28) provides detailed steps that might be useful.
+This [issue](https://github.com/acore2026/free5gc-compose/issues/28) provides detailed steps that might be useful.
 
 #### Option 1: Run UE inside gNB container
 
@@ -125,11 +125,11 @@ ue:
 
 ### srsRAN Notes
 
-You can check this [issue](https://github.com/free5gc/free5gc-compose/issues/94) for some sample configuration files of srsRAN + free5GC
+You can check this [issue](https://github.com/acore2026/free5gc-compose/issues/94) for some sample configuration files of srsRAN + free5GC
 
 ## Integration of WebUI with Nginx reverse proxy
 
-Here you can find helpful guidelines on the integration of Nginx reverse proxy to set it in front of the WebUI: https://github.com/free5gc/free5gc-compose/issues/55#issuecomment-1146648600
+Here you can find helpful guidelines on the integration of Nginx reverse proxy to set it in front of the WebUI: https://github.com/acore2026/free5gc-compose/issues/55#issuecomment-1146648600
 
 ## ULCL Configuration
 
@@ -139,7 +139,7 @@ To start the core with a I-UPF and PSA-UPF ULCL configuration, use
 docker compose -f docker-compose-ulcl.yaml up
 ```
 
-> Note: This configuration have been tested using release [free5gc-compose v4.0.0](https://github.com/free5gc/free5gc-compose/tree/v4.0.0)
+> Note: This configuration have been tested using release [free5gc-compose v4.0.0](https://github.com/acore2026/free5gc-compose/tree/v4.0.0)
 
 Check out the used configuration files at `config/ULCL`.
 
