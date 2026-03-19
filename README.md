@@ -56,24 +56,37 @@ docker rmi $(docker images -f "dangling=true" -q)
 You can create free5GC containers based on local images or docker hub images:
 
 ```bash
+# default one-UPF stack using the userspace forwarder
+docker compose up # add -d to run in background mode
+
+# one-UPF stack using the gtp5g forwarder
+docker compose -f docker-compose-gtp5g.yaml up
+
 # use local images
 docker compose -f docker-compose-build.yaml up
-# use images from docker hub
-docker compose up # add -d to run in background mode
 ```
 
 Destroy the established container resource after testing:
 
 ```bash
+# Remove established containers (default userspace stack)
+docker compose rm
+
+# Remove established containers (gtp5g stack)
+docker compose -f docker-compose-gtp5g.yaml rm
+
 # Remove established containers (local images)
 docker compose -f docker-compose-build.yaml rm
-# Remove established containers (remote images)
-docker compose rm
 ```
 
 ## Troubleshooting
 
 Please refer to the [Troubleshooting](./TROUBLESHOOTING.md) for more troubleshooting information.
+
+## Test Notes
+
+- [UE to UPF N3 Ping](./UE_UPF_N3_PING.md)
+- [UPF Performance Tests](./UPF_PERFORMANCE_TESTS.md)
 
 ## Integration with (external) gNB/UE
 
@@ -142,6 +155,16 @@ docker compose -f docker-compose-ulcl.yaml up
 > Note: This configuration have been tested using release [free5gc-compose v4.0.0](https://github.com/acore2026/free5gc-compose/tree/v4.0.0)
 
 Check out the used configuration files at `config/ULCL`.
+
+## Generic Multi-UPF Configuration
+
+To start the core with three generic UPFs that can each be used as an ingress, intermediate, or anchoring UPF depending on the SMF routing graph, use
+
+```bash
+docker compose -f docker-compose-multi-upf.yaml up
+```
+
+This variant keeps the UPFs generic (`upf1`, `upf2`, `upf3`) and moves the role selection into `config/multi-upf/smfcfg.yaml` and `config/multi-upf/uerouting.yaml`.
 
 ## Prometheous & Grafana
 
