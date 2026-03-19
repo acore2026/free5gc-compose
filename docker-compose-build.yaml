@@ -5,6 +5,7 @@ services:
     container_name: upf
     image: free5gc/upf:v4.2.1.ac
     build:
+      network: host
       context: ./nf_upf
       args:
         DEBUG_TOOLS: "false"
@@ -35,6 +36,7 @@ services:
   free5gc-nrf:
     container_name: nrf
     build:
+      network: host
       context: ./nf_nrf
       args:
         DEBUG_TOOLS: "false"
@@ -57,6 +59,7 @@ services:
   free5gc-amf:
     container_name: amf
     build:
+      network: host
       context: ./nf_amf
       args:
         DEBUG_TOOLS: "false"
@@ -79,6 +82,7 @@ services:
   free5gc-ausf:
     container_name: ausf
     build:
+      network: host
       context: ./nf_ausf
       args:
         DEBUG_TOOLS: "false"
@@ -100,6 +104,7 @@ services:
   free5gc-nssf:
     container_name: nssf
     build:
+      network: host
       context: ./nf_nssf
       args:
         DEBUG_TOOLS: "false"
@@ -121,6 +126,7 @@ services:
   free5gc-pcf:
     container_name: pcf
     build:
+      network: host
       context: ./nf_pcf
       args:
         DEBUG_TOOLS: "false"
@@ -142,6 +148,7 @@ services:
   free5gc-smf:
     container_name: smf
     build:
+      network: host
       context: ./nf_smf
       args:
         DEBUG_TOOLS: "false"
@@ -165,6 +172,7 @@ services:
   free5gc-udm:
     container_name: udm
     build:
+      network: host
       context: ./nf_udm
       args:
         DEBUG_TOOLS: "false"
@@ -187,6 +195,7 @@ services:
   free5gc-udr:
     container_name: udr
     build:
+      network: host
       context: ./nf_udr
       args:
         DEBUG_TOOLS: "false"
@@ -210,6 +219,7 @@ services:
   free5gc-chf:
     container_name: chf
     build:
+      network: host
       context: ./nf_chf
       args:
         DEBUG_TOOLS: "false"
@@ -235,6 +245,7 @@ services:
   free5gc-n3iwf:
     container_name: n3iwf
     build:
+      network: host
       context: ./nf_n3iwf
       args:
         DEBUG_TOOLS: "false"
@@ -259,6 +270,7 @@ services:
   free5gc-tngf:
     container_name: tngf
     build:
+      network: host
       context: ./nf_tngf
       args:
         DEBUG_TOOLS: "false"
@@ -279,6 +291,7 @@ services:
   free5gc-nef:
     container_name: nef
     build:
+      network: host
       context: ./nf_nef
       args:
         DEBUG_TOOLS: "false"
@@ -301,6 +314,7 @@ services:
   free5gc-webui:
     container_name: webui
     build:
+      network: host
       context: ./webui
       args:
         DEBUG_TOOLS: "false"
@@ -324,6 +338,7 @@ services:
   ueransim:
     container_name: ueransim
     build:
+      network: host
       context: ./ueransim
     command: ./nr-gnb -c ./config/gnbcfg.yaml
     volumes:
@@ -344,6 +359,7 @@ services:
   n3iwue:
     container_name: n3iwue
     build:
+      network: host
       context: ./n3iwue
     command: bash -c "ip route del default && ip route add default via 10.100.200.1 dev eth0 metric 203 && sleep infinity"
     volumes:
