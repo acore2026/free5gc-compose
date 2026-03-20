@@ -9,7 +9,6 @@ scrape_configs:
       - targets: ["amf.free5gc.org:9091"]
       - targets: ["ausf.free5gc.org:9091"]
       - targets: ["chf.free5gc.org:9091"]
-      - targets: ["n3iwf.free5gc.org:9091"]
       - targets: ["nrf.free5gc.org:9091"]
       - targets: ["nssf.free5gc.org:9091"]
       - targets: ["pcf.free5gc.org:9091"]

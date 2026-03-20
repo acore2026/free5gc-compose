@@ -8,8 +8,8 @@ if [ "$FORWARDER" == "gtp5g" ]; then
     COMPOSE_FILE="docker-compose-gtp5g-build.yaml"
 fi
 
-NF_LIST="nrf amf smf udr pcf udm nssf ausf n3iwf upf chf tngf nef webui"
-ADDITIONAL_IMAGES="ueransim n3iwue"
+NF_LIST="nrf amf smf udr pcf udm nssf ausf upf chf tngf nef webui"
+ADDITIONAL_IMAGES="ueransim"
 
 cd base
 

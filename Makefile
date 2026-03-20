@@ -3,7 +3,7 @@ DOCKER_IMAGE_NAME = 'base'
 DOCKER_IMAGE_TAG = 'latest'
 
 .PHONY: base
-all: base amf ausf nrf nssf pcf smf udm udr n3iwf upf chf tngf nef webconsole
+all: base amf ausf nrf nssf pcf smf udm udr upf chf tngf nef webconsole
 
 base:
 	docker build -t ${DOCKER_IMAGE_OWNER}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ./base
@@ -23,8 +23,6 @@ nrf: base
 	docker build --build-arg F5GC_MODULE=nrf -t ${DOCKER_IMAGE_OWNER}/nrf-base:${DOCKER_IMAGE_TAG} -f ./base/Dockerfile.nf ./base
 nssf: base
 	docker build --build-arg F5GC_MODULE=nssf -t ${DOCKER_IMAGE_OWNER}/nssf-base:${DOCKER_IMAGE_TAG} -f ./base/Dockerfile.nf ./base
-n3iwf: base
-	docker build --build-arg F5GC_MODULE=n3iwf -t ${DOCKER_IMAGE_OWNER}/n3iwf-base:${DOCKER_IMAGE_TAG} -f ./base/Dockerfile.nf ./base
 pcf: base
 	docker build --build-arg F5GC_MODULE=pcf -t ${DOCKER_IMAGE_OWNER}/pcf-base:${DOCKER_IMAGE_TAG} -f ./base/Dockerfile.nf ./base
 ausf: base
