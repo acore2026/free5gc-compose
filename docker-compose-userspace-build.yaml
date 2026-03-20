@@ -1,9 +1,0 @@
-services:
-  free5gc-upf:
-    sysctls:
-      - net.ipv4.ip_forward=1
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    volumes:
-      - ./config/upfcfg-userspace.yaml:/free5gc/config/upfcfg.yaml
-      - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh

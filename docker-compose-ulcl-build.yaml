@@ -5,7 +5,8 @@ services:
     container_name: i-upf
     image: free5gc/upf:v4.2.1.ac
     build:
-      context: ./nf_upf
+      context: .
+      dockerfile: nf_upf/Dockerfile
       args:
         DEBUG_TOOLS: "false"
     command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
@@ -23,7 +24,8 @@ services:
     container_name: psa-upf
     image: free5gc/upf:v4.2.1.ac
     build:
-      context: ./nf_upf
+      context: .
+      dockerfile: nf_upf/Dockerfile
       args:
         DEBUG_TOOLS: "false"
     command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"

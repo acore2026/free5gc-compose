@@ -34,9 +34,12 @@ cd base
 git clone --recursive -j `nproc` https://github.com/acore2026/free5gc.git
 cd ..
 
-# Build the images
+# Build the default local images (userspace UPF)
 make all
 docker compose -f docker-compose-build.yaml build
+
+# Build the local images with the gtp5g UPF variant instead
+docker compose -f docker-compose-gtp5g-build.yaml build
 
 # Alternatively you can build specific NF image e.g.:
 make amf
@@ -62,8 +65,11 @@ docker compose up # add -d to run in background mode
 # one-UPF stack using the gtp5g forwarder
 docker compose -f docker-compose-gtp5g.yaml up
 
-# use local images
+# use local userspace images
 docker compose -f docker-compose-build.yaml up
+
+# use local gtp5g images
+docker compose -f docker-compose-gtp5g-build.yaml up
 ```
 
 Destroy the established container resource after testing:
@@ -75,8 +81,11 @@ docker compose rm
 # Remove established containers (gtp5g stack)
 docker compose -f docker-compose-gtp5g.yaml rm
 
-# Remove established containers (local images)
+# Remove established containers (local userspace images)
 docker compose -f docker-compose-build.yaml rm
+
+# Remove established containers (local gtp5g images)
+docker compose -f docker-compose-gtp5g-build.yaml rm
 ```
 
 ## Troubleshooting

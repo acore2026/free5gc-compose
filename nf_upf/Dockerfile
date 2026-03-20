@@ -3,10 +3,6 @@ FROM free5gc/base AS my-base
 RUN git clone https://github.com/free5gc/go-gtp5gnl.git && mkdir "go-gtp5gnl/bin" && \
     cd "go-gtp5gnl/cmd/gogtp5g-tunnel" &&  go build -o "${GOPATH}/gtp5g-tunnel" . && \
     cd -
-
-FROM free5gc/base AS builder
-COPY base/free5gc/ $GOPATH/src/free5gc/
-RUN cd $GOPATH/src/free5gc && make upf
 FROM bitnami/minideb:trixie
 
 LABEL description="free5GC open source 5G Core Network" \
@@ -34,8 +30,9 @@ RUN apt-get update \
 WORKDIR /free5gc
 RUN mkdir -p config/ log/
 
-# Copy executable
-COPY --from=builder /go/src/free5gc/bin/${F5GC_MODULE} ./
+# Copy the UPF binary built on the host. Building this inside Docker is flaky in
+# this environment because Go module fetches intermittently fail TLS handshakes.
+COPY base/free5gc/bin/upf ./upf
 COPY --from=my-base /go/gtp5g-tunnel ./gtp5g-tunnel
 
 # Config files volume
