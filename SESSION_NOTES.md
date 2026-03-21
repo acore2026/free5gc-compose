@@ -47,16 +47,16 @@ docker-compose up -d
 
 ### Trigger UE Registration & PDU Session
 ```bash
-docker exec -it ueransim ./nr-ue -c ./config/uecfg.yaml
+docker compose -f docker-compose-build.yaml up -d ue
 ```
 
 ### Verify User Plane Connectivity
 Once the UE is registered and `uesimtun0` is created:
 ```bash
 # Check interface
-docker exec ueransim ip addr show uesimtun0
+docker exec ue ip addr show uesimtun0
 # Ping through 5G tunnel
-docker exec ueransim ping -I uesimtun0 8.8.8.8
+docker exec ue ping -I uesimtun0 8.8.8.8
 ```
 
 ## Expected Success Signals

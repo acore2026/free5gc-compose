@@ -16,8 +16,8 @@ The focus was:
 - Repo: `/home/huawei/free5gc-compose`
 - Stack file: `docker-compose.yaml`
 - Test date: `2026-03-19`
-- UE and gNB ran inside the same `ueransim` container
-- An `nr-ue` process was started manually inside `ueransim`
+- UE and gNB ran as separate containers: `ueransim` (gNB) and `ue` (UE)
+- The Go implementation of UERANSIM was used
 - The first UE tunnel was used for tests: `uesimtun0` with source IP `10.60.0.1`
 - `iperf3` server ran inside the `upf` container and was bound to the UPF container IP on `privnet`
 
@@ -175,13 +175,13 @@ docker exec -i mongodb mongo free5gc </tmp/seed_subscriber.js
 ### Start the UE
 
 ```bash
-docker exec ueransim ./nr-ue -c ./config/uecfg.yaml
+docker compose -f docker-compose-build.yaml up -d ue
 ```
 
 ### Confirm the tunnel and UPF mode
 
 ```bash
-docker exec ueransim ip addr show uesimtun0
+docker exec ue ip addr show uesimtun0
 docker exec upf sh -lc 'grep -n "forwarder" /free5gc/config/upfcfg.yaml'
 docker exec upf sh -lc 'ip link show | grep -E "upf(gtp|usr)" || true'
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' upf
@@ -190,7 +190,7 @@ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' upf
 ### Ping test
 
 ```bash
-docker exec ueransim ping -I uesimtun0 -c 10 <upf_ip>
+docker exec ue ping -I uesimtun0 -c 10 <upf_ip>
 ```
 
 ### TCP throughput test
@@ -198,13 +198,13 @@ docker exec ueransim ping -I uesimtun0 -c 10 <upf_ip>
 Start server:
 
 ```bash
-docker exec upf sh -lc 'iperf3 -s -B <upf_ip>'
+docker exec upf iperf3 -s -B <upf_ip>
 ```
 
 Run client:
 
 ```bash
-docker exec ueransim sh -lc 'iperf3 -c <upf_ip> -B 10.60.0.1 -t 10'
+docker exec ue iperf3 -c <upf_ip> -B 10.60.0.1 -t 10
 ```
 
 ### UDP throughput/loss test
@@ -212,19 +212,19 @@ docker exec ueransim sh -lc 'iperf3 -c <upf_ip> -B 10.60.0.1 -t 10'
 Start server:
 
 ```bash
-docker exec upf sh -lc 'iperf3 -s -B <upf_ip> -p <port>'
+docker exec upf iperf3 -s -B <upf_ip> -p <port>
 ```
 
 Run client:
 
 ```bash
-docker exec ueransim sh -lc 'iperf3 -u -c <upf_ip> -p <port> -B 10.60.0.1 -b 100M -t 5'
+docker exec ue iperf3 -u -c <upf_ip> -p <port> -B 10.60.0.1 -b 100M -t 5
 ```
 
 ### CPU sampling
 
 ```bash
-docker stats --no-stream upf ueransim
+docker stats --no-stream upf ueransim ue
 ```
 
 ## Results
