@@ -29,18 +29,22 @@ docker compose pull
 git clone https://github.com/acore2026/free5gc-compose.git
 cd free5gc-compose
 
-# clone free5gc sources
+# clone free5gc sources (including submodules like ueransim-go)
 cd base
 git clone --recursive -j `nproc` https://github.com/acore2026/free5gc.git
 cd ..
 
-# Build the default local images (userspace UPF)
+# Build the local images
 make all
 docker compose -f docker-compose-build.yaml build
+```
 
-# Build the local images with the gtp5g UPF variant instead
-docker compose -f docker-compose-gtp5g-build.yaml build
-
+Note: If you have already cloned `base/free5gc` without `--recursive`, you can initialize the submodules (like `ueransim-go`) by running:
+```bash
+cd base/free5gc
+git submodule update --init --recursive
+cd ../..
+```
 # Alternatively you can build specific NF image e.g.:
 make amf
 docker compose -f docker-compose-build.yaml build free5gc-amf
@@ -63,13 +67,23 @@ You can create free5GC containers based on local images or docker hub images:
 docker compose up # add -d to run in background mode
 
 # one-UPF stack using the gtp5g forwarder
-docker compose -f docker-compose-gtp5g.yaml up
+UPF_CONFIG_PATH=./config/upfcfg.yaml docker compose up
 
 # use local userspace images
 docker compose -f docker-compose-build.yaml up
 
-# use local gtp5g images
-docker compose -f docker-compose-gtp5g-build.yaml up
+# use local images with the gtp5g forwarder
+UPF_CONFIG_PATH=./config/upfcfg.yaml docker compose -f docker-compose-build.yaml up
+```
+
+The forwarder mode is selected via `UPF_CONFIG_PATH` and defaults to userspace:
+
+```bash
+# userspace (default)
+export UPF_CONFIG_PATH=./config/upfcfg-userspace.yaml
+
+# gtp5g
+export UPF_CONFIG_PATH=./config/upfcfg.yaml
 ```
 
 Destroy the established container resource after testing:
@@ -79,13 +93,13 @@ Destroy the established container resource after testing:
 docker compose rm
 
 # Remove established containers (gtp5g stack)
-docker compose -f docker-compose-gtp5g.yaml rm
+UPF_CONFIG_PATH=./config/upfcfg.yaml docker compose rm
 
 # Remove established containers (local userspace images)
 docker compose -f docker-compose-build.yaml rm
 
 # Remove established containers (local gtp5g images)
-docker compose -f docker-compose-gtp5g-build.yaml rm
+UPF_CONFIG_PATH=./config/upfcfg.yaml docker compose -f docker-compose-build.yaml rm
 ```
 
 ## Troubleshooting

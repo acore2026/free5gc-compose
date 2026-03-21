@@ -18,10 +18,12 @@ imei: "356938035643803"
 # IMEISV number of the device. It is used if no SUPI and IMEI is provided
 imeiSv: "4370816125816151"
 
+# Network mask used for the UE's TUN interface
+tunNetmask: "255.255.255.0"
+
 # List of gNB IP addresses for Radio Link Simulation
 gnbSearchList:
-  - 127.0.0.1
-  - gnb.free5gc.org
+  - 10.100.200.17:38412
 
 # UAC Access Identities Configuration
 uacAic:

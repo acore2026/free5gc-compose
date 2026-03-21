@@ -45,6 +45,133 @@ docker compose -f docker-compose.yaml down --remove-orphans
 docker compose -f docker-compose.yaml up -d
 ```
 
+### Provision the subscriber
+
+If the UE attach fails with authentication errors and MongoDB has no subscriber records, add the UE subscription before starting `nr-ue`.
+
+Check for missing subscriber data:
+
+```bash
+docker exec mongodb mongo --quiet free5gc --eval 'db.subscribers.count()'
+docker exec mongodb mongo --quiet free5gc --eval 'db.getCollection("subscriptionData.authenticationData.authenticationSubscription").findOne({ueId:"imsi-208930000000001"})'
+```
+
+Seed the subscriber used by `config/uecfg.yaml`:
+
+```bash
+cat >/tmp/seed_subscriber.js <<'EOF'
+var dbname = db.getSiblingDB('free5gc');
+var ueId = 'imsi-208930000000001';
+var plmn = '20893';
+
+dbname.getCollection('subscriptionData.authenticationData.authenticationSubscription').updateOne(
+  { ueId: ueId },
+  { $set: {
+      ueId: ueId,
+      authenticationMethod: '5G_AKA',
+      encPermanentKey: '8baf473f2f8fd09487cccbd7097c6862',
+      encOpcKey: '8e27b6af0e692e750f32667a3b14605d',
+      authenticationManagementField: '8000',
+      sequenceNumber: { sqnScheme: 'GENERAL', sqn: '000000000023' }
+  }},
+  { upsert: true }
+);
+
+dbname.getCollection('subscriptionData.authenticationData.webAuthenticationSubscription').updateOne(
+  { ueId: ueId },
+  { $set: {
+      ueId: ueId,
+      authenticationMethod: '5G_AKA',
+      authenticationManagementField: '8000',
+      sequenceNumber: '000000000023',
+      permanentKey: { permanentKeyValue: '8baf473f2f8fd09487cccbd7097c6862', encryptionKey: 0, encryptionAlgorithm: 0 },
+      opc: { opcValue: '8e27b6af0e692e750f32667a3b14605d', encryptionKey: 0, encryptionAlgorithm: 0 }
+  }},
+  { upsert: true }
+);
+
+dbname.getCollection('subscriptionData.provisionedData.amData').updateOne(
+  { ueId: ueId, servingPlmnId: plmn },
+  { $set: {
+      ueId: ueId,
+      servingPlmnId: plmn,
+      gpsis: ['msisdn-0900000000'],
+      subscribedUeAmbr: { uplink: '1 Gbps', downlink: '2 Gbps' },
+      nssai: {
+        defaultSingleNssais: [
+          { sst: 1, sd: '010203' },
+          { sst: 1, sd: '112233' }
+        ]
+      }
+  }},
+  { upsert: true }
+);
+
+dbname.getCollection('subscriptionData.provisionedData.smfSelectionSubscriptionData').updateOne(
+  { ueId: ueId, servingPlmnId: plmn },
+  { $set: {
+      ueId: ueId,
+      servingPlmnId: plmn,
+      subscribedSnssaiInfos: {
+        '01010203': { dnnInfos: [ { dnn: 'internet' } ] },
+        '01112233': { dnnInfos: [ { dnn: 'internet' } ] }
+      }
+  }},
+  { upsert: true }
+);
+
+dbname.getCollection('subscriptionData.provisionedData.smData').deleteMany({ ueId: ueId, servingPlmnId: plmn });
+dbname.getCollection('subscriptionData.provisionedData.smData').insertMany([
+  {
+    ueId: ueId,
+    servingPlmnId: plmn,
+    singleNssai: { sst: 1, sd: '010203' },
+    dnnConfigurations: {
+      internet: {
+        pduSessionTypes: { defaultSessionType: 'IPV4', allowedSessionTypes: ['IPV4'] },
+        sscModes: { defaultSscMode: 'SSC_MODE_1', allowedSscModes: ['SSC_MODE_2', 'SSC_MODE_3'] },
+        '5gQosProfile': { '5qi': 9, arp: { priorityLevel: 8 }, priorityLevel: 8 },
+        sessionAmbr: { uplink: '200 Mbps', downlink: '100 Mbps' }
+      }
+    }
+  },
+  {
+    ueId: ueId,
+    servingPlmnId: plmn,
+    singleNssai: { sst: 1, sd: '112233' },
+    dnnConfigurations: {
+      internet: {
+        pduSessionTypes: { defaultSessionType: 'IPV4', allowedSessionTypes: ['IPV4'] },
+        sscModes: { defaultSscMode: 'SSC_MODE_1', allowedSscModes: ['SSC_MODE_2', 'SSC_MODE_3'] },
+        '5gQosProfile': { '5qi': 9, arp: { priorityLevel: 8 }, priorityLevel: 8 },
+        sessionAmbr: { uplink: '200 Mbps', downlink: '100 Mbps' }
+      }
+    }
+  }
+]);
+
+dbname.getCollection('policyData.ues.amData').updateOne(
+  { ueId: ueId },
+  { $set: { ueId: ueId, subscCats: ['free5gc'] } },
+  { upsert: true }
+);
+
+dbname.getCollection('policyData.ues.smData').updateOne(
+  { ueId: ueId },
+  { $set: {
+      ueId: ueId,
+      smPolicySnssaiData: {
+        '01010203': { snssai: { sst: 1, sd: '010203' }, smPolicyDnnData: { internet: { dnn: 'internet' } } },
+        '01112233': { snssai: { sst: 1, sd: '112233' }, smPolicyDnnData: { internet: { dnn: 'internet' } } }
+      }
+  }},
+  { upsert: true }
+);
+EOF
+
+docker exec -i mongodb mongo free5gc </tmp/seed_subscriber.js
+```
+
 ### Start the UE
 
 ```bash
@@ -104,6 +231,8 @@ docker stats --no-stream upf ueransim
 
 ### Userspace forwarder
 
+#### laptop
+
 Clean userspace TCP sample:
 
 - UPF mode: `userspace`
@@ -140,6 +269,51 @@ Observed userspace behavior at higher offered UDP load:
 - at `200 Mbit/s`, the path showed high loss from the start and could become unstable
 - representative server-side loss during one run ranged roughly from `31%` to `67%`
 - this pointed to packet handling / queueing limits rather than CPU saturation
+
+#### huaweicloud
+
+Clean userspace TCP sample:
+
+- UPF mode: `userspace`
+- UPF IP during that run: `10.100.200.3`
+- `ping -I uesimtun0 -c 10 10.100.200.3`
+  - `0%` packet loss
+  - avg RTT `0.616 ms`
+- `iperf3 -c 10.100.200.3 -B 10.60.0.1 -t 10`
+  - sender `212 Mbits/sec`
+  - receiver `211 Mbits/sec`
+  - retransmissions `4789`
+
+Userspace TCP retest after stack recovery:
+
+- UE tunnel IP during that run: `10.60.0.1`
+- `ping -I uesimtun0 -c 3 10.100.200.3`
+  - `0%` packet loss
+  - avg RTT `0.561 ms`
+- `iperf3 -c 10.100.200.3 -p 5208 -B 10.60.0.1 -t 10`
+  - run 1: sender `212.100 Mbits/sec`, receiver `211.253 Mbits/sec`, retransmissions `4921`
+  - run 2: sender `210.963 Mbits/sec`, receiver `210.206 Mbits/sec`, retransmissions `5144`
+  - run 3: sender `209.589 Mbits/sec`, receiver `208.922 Mbits/sec`, retransmissions `5715`
+  - practical TCP throughput in that session: about `210 Mbits/sec`
+
+Clean userspace UDP `100 Mbit/s` sample:
+
+- UPF mode: `userspace`
+- UPF IP during that run: `10.100.200.3`
+- `ping -I uesimtun0 -c 10 10.100.200.3`
+  - `0%` packet loss
+  - avg RTT `0.616 ms`
+- `iperf3 -u -c 10.100.200.3 -p 5208 -B 10.60.0.1 -b 100M -t 5`
+  - sender `100 Mbits/sec`
+  - receiver `100 Mbits/sec`
+  - receiver loss `0/46374` = `0%`
+  - jitter `0.005 ms`
+
+Userspace CPU snapshots in that session:
+
+- before traffic: `upf 2.29%`, `ueransim 0.11%`
+- around UDP server start: `upf 0.07%`, `ueransim 0.10%`
+- after UDP: `upf 0.08%`, `ueransim 0.11%`
 
 ### gtp5g forwarder
 

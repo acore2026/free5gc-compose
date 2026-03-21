@@ -1,12 +1,6 @@
 #!/bin/bash
 ARCH=${1-"x86_64"}
 TAG=${2-"latest"}
-FORWARDER=${3-"userspace"}
-COMPOSE_FILE="docker-compose-build.yaml"
-
-if [ "$FORWARDER" == "gtp5g" ]; then
-    COMPOSE_FILE="docker-compose-gtp5g-build.yaml"
-fi
 
 NF_LIST="nrf amf smf udr pcf udm nssf ausf upf chf tngf nef webui"
 ADDITIONAL_IMAGES="ueransim"
@@ -26,9 +20,9 @@ make all
 
 # Build images for the specified architecture
 if [ "$ARCH" == "aarch64" ]; then
-    docker compose -f "${COMPOSE_FILE}" build --build-arg TARGET_ARCH="$ARCH"
+    docker compose -f docker-compose-build.yaml build --build-arg TARGET_ARCH="$ARCH"
 else
-    docker compose -f "${COMPOSE_FILE}" build
+    docker compose -f docker-compose-build.yaml build
 fi
 
 # Tag and push images for each network function

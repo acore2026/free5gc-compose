@@ -2,8 +2,11 @@ DOCKER_IMAGE_OWNER = 'free5gc'
 DOCKER_IMAGE_NAME = 'base'
 DOCKER_IMAGE_TAG = 'latest'
 
-.PHONY: base
+.PHONY: base setup
 all: base amf ausf nrf nssf pcf smf udm udr upf chf tngf nef webconsole
+
+setup:
+	git -C base/free5gc submodule update --init --recursive
 
 base:
 	docker build -t ${DOCKER_IMAGE_OWNER}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ./base

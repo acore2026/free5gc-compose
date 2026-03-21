@@ -8,7 +8,7 @@ services:
     image: free5gc/upf:v4.2.1.ac
     command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
     volumes:
-      - ./config/upfcfg-userspace.yaml:/free5gc/config/upfcfg.yaml
+      - ${UPF_CONFIG_PATH:-./config/upfcfg-userspace.yaml}:/free5gc/config/upfcfg.yaml
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
     cap_add:
       - NET_ADMIN

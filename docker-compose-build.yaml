@@ -13,8 +13,10 @@ services:
         DEBUG_TOOLS: "false"
     command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
     volumes:
-      - ./config/upfcfg-userspace.yaml:/free5gc/config/upfcfg.yaml
+      - ${UPF_CONFIG_PATH:-./config/upfcfg-userspace.yaml}:/free5gc/config/upfcfg.yaml
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
+      - ./config/adaptive-upf.pem:/free5gc/config/adaptive-upf.pem
+      - ./config/adaptive-upf.key:/free5gc/config/adaptive-upf.key
     cap_add:
       - NET_ADMIN
     devices:
@@ -305,10 +307,34 @@ services:
   ueransim:
     container_name: ueransim
     build:
-      context: ./ueransim
-    command: ./nr-gnb -c ./config/gnbcfg.yaml
+      context: ./base/free5gc/ueransim-go
+      dockerfile: Dockerfile
+    entrypoint: ./nr-gnb
+    command: -config ./config/gnbcfg.yaml
     volumes:
-      - ./config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml
+      - ./config/gnbcfg-sidecar.yaml:/ueransim/config/gnbcfg.yaml
+      - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - "/dev/net/tun"
+    networks:
+      privnet:
+        ipv4_address: 10.100.200.17
+        aliases:
+          - gnb.free5gc.org
+    depends_on:
+      - free5gc-amf
+      - free5gc-upf
+
+  ue:
+    container_name: ue
+    build:
+      context: ./base/free5gc/ueransim-go
+      dockerfile: Dockerfile
+    entrypoint: ./nr-ue
+    command: -config ./config/uecfg.yaml
+    volumes:
       - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
     cap_add:
       - NET_ADMIN
@@ -317,9 +343,9 @@ services:
     networks:
       privnet:
         aliases:
-          - gnb.free5gc.org
+          - ue.free5gc.org
     depends_on:
-      - free5gc-amf
+      - ueransim
       - free5gc-upf
 
 networks:
