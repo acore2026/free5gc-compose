@@ -13,7 +13,7 @@ services:
         DEBUG_TOOLS: "false"
     command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
     volumes:
-      - ${UPF_CONFIG_PATH:-./config/upfcfg-userspace.yaml}:/free5gc/config/upfcfg.yaml
+      - ${UPF_CONFIG_PATH:-./config/upfcfg-userspace-adaptive.yaml}:/free5gc/config/upfcfg.yaml
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
       - ./config/adaptive-upf.pem:/free5gc/config/adaptive-upf.pem
       - ./config/adaptive-upf.key:/free5gc/config/adaptive-upf.key
@@ -25,6 +25,8 @@ services:
       privnet:
         aliases:
           - upf.free5gc.org
+    expose:
+      - "9082"
 
   db:
     container_name: mongodb
@@ -307,8 +309,8 @@ services:
   ueransim:
     container_name: ueransim
     build:
-      context: ./base/free5gc/ueransim-go
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: base/free5gc/ueransim-go/Dockerfile
     entrypoint: ./nr-gnb
     command: -config ./config/gnbcfg.yaml
     volumes:
@@ -330,12 +332,27 @@ services:
   ue:
     container_name: ue
     build:
-      context: ./base/free5gc/ueransim-go
-      dockerfile: Dockerfile
-    entrypoint: ./nr-ue
-    command: -config ./config/uecfg.yaml
+      context: .
+      dockerfile: base/free5gc/ueransim-go/Dockerfile
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+    entrypoint: ./entrypoint-ue-sidecar.sh
+    command:
+      - ./nr-ue
+      - -config
+      - ./config/uecfg.yaml
     volumes:
       - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
+      - ./config/adaptive-qos-sidecar.yaml:/ueransim/config/adaptive-qos-sidecar.yaml
+    environment:
+      DEMO_UI_LISTEN: 0.0.0.0:8082
+      DEMO_UI_SIDECAR_BASE: http://127.0.0.1:8081
+      DEMO_UI_UPF_BASE: http://upf:9082
+      UPF_HOST: upf
+      UPF_PORT: 9082
+      CORE_READY_TIMEOUT: 30
+      CORE_READY_INTERVAL: 2
     cap_add:
       - NET_ADMIN
     devices:
