@@ -335,8 +335,7 @@ services:
       context: .
       dockerfile: base/free5gc/ueransim-go/Dockerfile
     ports:
-      - "8081:8081"
-      - "8082:8082"
+      - "8083:8083"
     entrypoint: ./entrypoint-ue-sidecar.sh
     command:
       - ./nr-ue
@@ -346,9 +345,6 @@ services:
       - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
       - ./config/adaptive-qos-sidecar.yaml:/ueransim/config/adaptive-qos-sidecar.yaml
     environment:
-      DEMO_UI_LISTEN: 0.0.0.0:8082
-      DEMO_UI_SIDECAR_BASE: http://127.0.0.1:8081
-      DEMO_UI_UPF_BASE: http://upf:9082
       UPF_HOST: upf
       UPF_PORT: 9082
       CORE_READY_TIMEOUT: 30
@@ -363,6 +359,32 @@ services:
           - ue.free5gc.org
     depends_on:
       - ueransim
+      - free5gc-upf
+
+  adaptive-qos-ui:
+    container_name: adaptive-qos-ui
+    build:
+      context: .
+      dockerfile: base/free5gc/NFs/upf/cmd/Dockerfile.adaptive-qos-ui
+    command:
+      - -listen
+      - 0.0.0.0:8084
+      - -sidecar-base
+      - http://ue:8083
+      - -upf-base
+      - http://upf:9082
+    environment:
+      SIDECAR_BIN: ""
+      SIDECAR_CONFIG: ""
+      WEBAPP_DIST: adaptive-qos-video-stream/webapp/dist
+    ports:
+      - "8084:8084"
+    networks:
+      privnet:
+        aliases:
+          - adaptive-qos-ui
+    depends_on:
+      - ue
       - free5gc-upf
 
 networks:

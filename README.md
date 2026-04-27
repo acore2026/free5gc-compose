@@ -110,6 +110,7 @@ Please refer to the [Troubleshooting](./TROUBLESHOOTING.md) for more troubleshoo
 
 - [UE to UPF N3 Ping](./UE_UPF_N3_PING.md)
 - [UPF Performance Tests](./UPF_PERFORMANCE_TESTS.md)
+- [Two-UE Userspace UPF Deployment Guide](./TWO_UE_USERSPACE_UPF_DEPLOYMENT.md)
 
 ## Integration with gNB/UE
 
