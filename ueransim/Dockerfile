@@ -8,8 +8,6 @@ ENV PATH="$PATH:/cmake/bin"
 ARG TARGET_ARCH=x86_64 
 # TARGET_ARCH support : x86_64, aarch64(arm64)
 
-
-
 # Install dependencies
 RUN apt-get update \
     && apt-get install libsctp-dev lksctp-tools iproute2 make -y \
@@ -23,20 +21,10 @@ RUN apt-get update \
     && cd ./UERANSIM \
     && make -j `nproc`
 
-FROM golang:1.26 AS adaptive-qos-builder
-
-WORKDIR /src
-COPY base/free5gc/NFs/upf /src/upf
-WORKDIR /src/upf
-RUN go build -o /out/adaptive-qos-sidecar ./cmd/adaptive-qos-sidecar
-RUN go build -o /out/adaptive-qos-client ./cmd/adaptive-qos-client
-
 
 FROM bitnami/minideb:trixie
 
 ENV DEBIAN_FRONTEND=noninteractive
-
-
 
 # Install runtime dependencies + ping
 RUN apt-get update \
@@ -54,9 +42,5 @@ COPY --from=builder /UERANSIM/build/nr-ue .
 COPY --from=builder /UERANSIM/build/nr-cli .
 COPY --from=builder /UERANSIM/build/nr-binder binder/
 COPY --from=builder /UERANSIM/build/libdevbnd.so binder/
-COPY --from=adaptive-qos-builder /out/adaptive-qos-sidecar .
-COPY --from=adaptive-qos-builder /out/adaptive-qos-client .
-COPY ./ueransim/entrypoint-ue-sidecar.sh .
-RUN chmod +x ./entrypoint-ue-sidecar.sh ./adaptive-qos-sidecar ./adaptive-qos-client
 
 VOLUME [ "/ueransim/config" ]

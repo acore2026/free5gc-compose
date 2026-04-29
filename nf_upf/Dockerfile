@@ -3,6 +3,8 @@ FROM free5gc/base AS my-base
 RUN git clone https://github.com/free5gc/go-gtp5gnl.git && mkdir "go-gtp5gnl/bin" && \
     cd "go-gtp5gnl/cmd/gogtp5g-tunnel" &&  go build -o "${GOPATH}/gtp5g-tunnel" . && \
     cd -
+
+FROM free5gc/upf-base:latest AS builder
 FROM bitnami/minideb:trixie
 
 LABEL description="free5GC open source 5G Core Network" \
@@ -11,9 +13,6 @@ LABEL description="free5GC open source 5G Core Network" \
 ENV F5GC_MODULE=upf
 ENV DEBIAN_FRONTEND=noninteractive
 ARG DEBUG_TOOLS
-
-# Keep Debian's default HTTP mirrors. In proxied environments the forced HTTPS
-# rewrite can fail certificate validation and break apt during image builds.
 
 # Install debug tools ~ 100MB (if DEBUG_TOOLS is set to true)
 RUN if [ "$DEBUG_TOOLS" = "true" ] ; then apt-get update && apt-get install -y vim strace net-tools iputils-ping curl netcat tcpdump; fi
@@ -30,9 +29,8 @@ RUN apt-get update \
 WORKDIR /free5gc
 RUN mkdir -p config/ log/
 
-# Copy the UPF binary built on the host. Building this inside Docker is flaky in
-# this environment because Go module fetches intermittently fail TLS handshakes.
-COPY base/free5gc/bin/upf ./upf
+# Copy executable
+COPY --from=builder /free5gc/${F5GC_MODULE} ./
 COPY --from=my-base /go/gtp5g-tunnel ./gtp5g-tunnel
 
 # Config files volume

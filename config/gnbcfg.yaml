@@ -1,25 +1,20 @@
-mcc: "208" # Mobile Country Code value
-mnc: "93" # Mobile Network Code value (2 or 3 digits)
+mcc: "460"
+mnc: "11"
 
-nci: "0x000000010" # NR Cell Identity (36-bit)
-idLength: 32 # NR gNB ID length in bits [22...32]
-tac: 1 # Tracking Area Code
+nci: "0x000000010"
+idLength: 32
+tac: 000001
 
-linkIp: 127.0.0.1 # gNB's local IP address for Radio Link Simulation (Usually same with local IP)
-ngapIp: gnb.free5gc.org # gNB's local IP address for N2 Interface (Usually same with local IP)
-gtpIp: gnb.free5gc.org # gNB's local IP address for N3 Interface (Usually same with local IP)
+linkIp: 10.88.120.99
+ngapIp: 10.88.120.99
+gtpIp: 10.88.120.99
 
-# List of AMF address information
 amfConfigs:
-  - address: amf.free5gc.org
+  - address: 10.88.120.100
     port: 38412
 
-# List of supported S-NSSAIs by this gNB
 slices:
   - sst: 0x1
-    sd: 0x010203
-  - sst: 0x1
-    sd: 0x112233
+    sd: 0x000000
 
-# Indicates whether or not SCTP stream number errors should be ignored.
 ignoreStreamIds: true
