@@ -1,0 +1,87 @@
+version: '3.8'
+
+networks:
+  imsnet:
+    driver_opts:
+      com.docker.network.bridge.name: br-ims
+    ipam:
+      config:
+        - subnet: 10.100.201.0/24
+      driver: default
+
+services:
+  ims-mysql:
+    image: mysql:5.7
+    container_name: ims-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: imsroot
+      MYSQL_DATABASE: ims
+      MYSQL_USER: ims
+      MYSQL_PASSWORD: ims123
+    networks:
+      imsnet:
+        aliases:
+          - ims-db
+    volumes:
+      - ims-dbdata:/var/lib/mysql
+      - ./config/mysql-init.sql:/docker-entrypoint-initdb.d/init.sql
+    expose:
+      - '3306'
+
+  p-cscf:
+    image: kamailio/kamailio:latest
+    container_name: p-cscf
+    depends_on:
+      - ims-mysql
+    networks:
+      imsnet:
+        aliases:
+          - p-cscf.ims.org
+      privnet:
+        aliases:
+          - p-cscf.free5gc.org
+    ports:
+      - '5060:5060/udp'
+      - '5060:5060/tcp'
+    volumes:
+      - ./config/kamailio-pcscf.cfg:/etc/kamailio/kamailio.cfg
+    command: kamailio -DD -E
+
+  i-cscf:
+    image: kamailio/kamailio:latest
+    container_name: i-cscf
+    depends_on:
+      - ims-mysql
+    networks:
+      imsnet:
+        aliases:
+          - i-cscf.ims.org
+      privnet:
+        aliases:
+          - i-cscf.free5gc.org
+    expose:
+      - '5060'
+    volumes:
+      - ./config/kamailio-icscf.cfg:/etc/kamailio/kamailio.cfg
+    command: kamailio -DD -E
+
+  s-cscf:
+    image: kamailio/kamailio:latest
+    container_name: s-cscf
+    depends_on:
+      - ims-mysql
+    networks:
+      imsnet:
+        aliases:
+          - s-cscf.ims.org
+      privnet:
+        aliases:
+          - s-cscf.free5gc.org
+    expose:
+      - '5060'
+    volumes:
+      - ./config/kamailio-scscf.cfg:/etc/kamailio/kamailio.cfg
+    command: kamailio -DD -E
+
+volumes:
+  ims-dbdata:

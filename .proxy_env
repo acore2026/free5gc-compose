@@ -1,0 +1,9 @@
+# Proxy configuration
+export http_proxy="http://172.30.240.1:7897"
+export https_proxy="$http_proxy"
+export all_proxy="$http_proxy"
+export HTTP_PROXY="$http_proxy"
+export HTTPS_PROXY="$https_proxy"
+export ALL_PROXY="$all_proxy"
+export no_proxy="localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,*.free5gc.org"
+export NO_PROXY="$no_proxy"

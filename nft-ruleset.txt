@@ -1,0 +1,172 @@
+table ip filter {
+	chain DOCKER {
+		ip daddr 10.100.200.5 iifname != "br-free5gc" oifname "br-free5gc" tcp dport 5000 counter packets 2 bytes 104 accept
+		ip daddr 10.100.200.5 iifname != "br-free5gc" oifname "br-free5gc" tcp dport 2122 counter packets 0 bytes 0 accept
+		ip daddr 10.100.200.5 iifname != "br-free5gc" oifname "br-free5gc" tcp dport 2121 counter packets 0 bytes 0 accept
+		ip daddr 10.100.200.7 iifname != "br-free5gc" oifname "br-free5gc" tcp dport 9082 counter packets 0 bytes 0 accept
+		ip daddr 10.100.200.7 iifname != "br-free5gc" oifname "br-free5gc" udp dport 8805 counter packets 0 bytes 0 accept
+		ip daddr 10.100.200.7 iifname != "br-free5gc" oifname "br-free5gc" udp dport 2152 counter packets 2 bytes 232 accept
+		ip daddr 10.100.200.10 iifname != "br-free5gc" oifname "br-free5gc" ip protocol sctp sctp dport 38412 counter packets 1 bytes 68 accept
+		ip daddr 10.100.200.10 iifname != "br-free5gc" oifname "br-free5gc" tcp dport 8000 counter packets 0 bytes 0 accept
+	}
+
+	chain DOCKER-ISOLATION-STAGE-1 {
+		iifname "docker0" oifname != "docker0" counter packets 0 bytes 0 jump DOCKER-ISOLATION-STAGE-2
+		iifname "br-free5gc" oifname != "br-free5gc" counter packets 28815 bytes 8863245 jump DOCKER-ISOLATION-STAGE-2
+		counter packets 291572 bytes 56801961 return
+	}
+
+	chain FORWARD {
+		type filter hook forward priority filter; policy drop;
+		ip saddr 192.168.3.0/24 ip daddr 10.60.0.0/24 iifname "eth1" oifname "br-free5gc" counter packets 21 bytes 1500 accept
+		ip saddr 10.60.0.0/24 ip daddr 192.168.3.0/24 iifname "br-free5gc" oifname "eth1" ct state related,established counter packets 18 bytes 1464 accept
+		counter packets 291572 bytes 56801961 jump DOCKER-USER
+		counter packets 291572 bytes 56801961 jump DOCKER-ISOLATION-STAGE-1
+		oifname "docker0" ct state related,established counter packets 0 bytes 0 accept
+		oifname "docker0" counter packets 0 bytes 0 jump DOCKER
+		iifname "docker0" oifname != "docker0" counter packets 0 bytes 0 accept
+		iifname "docker0" oifname "docker0" counter packets 0 bytes 0 accept
+		counter packets 293098 bytes 57018549 jump ts-forward
+		oifname "br-free5gc" ct state related,established counter packets 255971 bytes 47627572 accept
+		oifname "br-free5gc" counter packets 8226 bytes 517288 jump DOCKER
+		iifname "br-free5gc" oifname != "br-free5gc" counter packets 28900 bytes 8873629 accept
+		iifname "br-free5gc" oifname "br-free5gc" counter packets 8117 bytes 507920 accept
+		ip saddr 10.88.120.0/24 ip daddr 10.60.0.0/24 iifname "eth1" oifname "br-free5gc" counter packets 2 bytes 120 accept
+		ip saddr 10.60.0.0/24 ip daddr 10.88.120.0/24 iifname "br-free5gc" oifname "eth1" ct state related,established counter packets 0 bytes 0 accept
+	}
+
+	chain DOCKER-USER {
+		counter packets 293098 bytes 57018549 return
+	}
+
+	chain ts-input {
+		ip saddr 100.123.36.96 iifname "lo" counter packets 0 bytes 0 accept
+		ip saddr 100.115.92.0/23 iifname != "tailscale0" counter packets 0 bytes 0 return
+		ip saddr 100.64.0.0/10 iifname != "tailscale0" counter packets 0 bytes 0 drop
+		iifname "tailscale0" counter packets 36 bytes 2376 accept
+		udp dport 41641 counter packets 503 bytes 30180 accept
+	}
+
+	chain ts-forward {
+		iifname "tailscale0" counter packets 0 bytes 0 meta mark set mark and 0xff00ffff xor 0x40000
+		meta mark & 0x00ff0000 == 0x00040000 counter packets 0 bytes 0 accept
+		ip saddr 100.64.0.0/10 oifname "tailscale0" counter packets 0 bytes 0 drop
+		oifname "tailscale0" counter packets 0 bytes 0 accept
+	}
+
+	chain INPUT {
+		type filter hook input priority filter; policy accept;
+		counter packets 73808 bytes 14472988 jump ts-input
+	}
+
+	chain DOCKER-ISOLATION-STAGE-2 {
+		oifname "docker0" counter packets 0 bytes 0 drop
+		oifname "br-free5gc" counter packets 0 bytes 0 drop
+		counter packets 28815 bytes 8863245 return
+	}
+}
+table ip nat {
+	chain POSTROUTING {
+		type nat hook postrouting priority srcnat; policy accept;
+		ip saddr 192.168.3.0/24 ip daddr 10.60.0.0/24 oifname "br-free5gc" counter packets 9 bytes 492 masquerade
+		ip saddr 172.17.0.0/16 oifname != "docker0" counter packets 0 bytes 0 masquerade
+		counter packets 10102 bytes 618975 jump ts-postrouting
+		ip saddr 10.100.200.0/24 oifname != "br-free5gc" counter packets 1046 bytes 66782 masquerade
+		ip saddr 10.100.200.5 ip daddr 10.100.200.5 tcp dport 5000 counter packets 0 bytes 0 masquerade
+		ip saddr 10.100.200.5 ip daddr 10.100.200.5 tcp dport 2122 counter packets 0 bytes 0 masquerade
+		ip saddr 10.100.200.5 ip daddr 10.100.200.5 tcp dport 2121 counter packets 0 bytes 0 masquerade
+		ip saddr 10.100.200.7 ip daddr 10.100.200.7 tcp dport 9082 counter packets 0 bytes 0 masquerade
+		ip saddr 10.100.200.7 ip daddr 10.100.200.7 udp dport 8805 counter packets 0 bytes 0 masquerade
+		ip saddr 10.100.200.7 ip daddr 10.100.200.7 udp dport 2152 counter packets 0 bytes 0 masquerade
+		ip saddr 10.100.200.10 ip daddr 10.100.200.10 ip protocol sctp sctp dport 38412 counter packets 0 bytes 0 masquerade
+		ip saddr 10.100.200.10 ip daddr 10.100.200.10 tcp dport 8000 counter packets 0 bytes 0 masquerade
+		ip saddr 10.88.120.0/24 ip daddr 10.60.0.0/24 oifname "br-free5gc" counter packets 2 bytes 120 masquerade
+	}
+
+	chain PREROUTING {
+		type nat hook prerouting priority dstnat; policy accept;
+		fib daddr type local counter packets 501 bytes 42419 jump DOCKER
+	}
+
+	chain OUTPUT {
+		type nat hook output priority dstnat; policy accept;
+		ip daddr != 127.0.0.0/8 fib daddr type local counter packets 1 bytes 84 jump DOCKER
+	}
+
+	chain ts-postrouting {
+		meta mark & 0x00ff0000 == 0x00040000 counter packets 0 bytes 0 masquerade
+	}
+
+	chain DOCKER {
+		iifname "docker0" counter packets 0 bytes 0 return
+		iifname "br-free5gc" counter packets 17 bytes 15090 return
+		iifname != "br-free5gc" tcp dport 5000 counter packets 2 bytes 104 dnat to 10.100.200.5:5000
+		iifname != "br-free5gc" tcp dport 2122 counter packets 0 bytes 0 dnat to 10.100.200.5:2122
+		iifname != "br-free5gc" tcp dport 2121 counter packets 0 bytes 0 dnat to 10.100.200.5:2121
+		iifname != "br-free5gc" tcp dport 9082 counter packets 0 bytes 0 dnat to 10.100.200.7:9082
+		iifname != "br-free5gc" udp dport 8805 counter packets 0 bytes 0 dnat to 10.100.200.7:8805
+		iifname != "br-free5gc" udp dport 2152 counter packets 2 bytes 232 dnat to 10.100.200.7:2152
+		ip daddr 10.88.120.100 iifname != "br-free5gc" ip protocol sctp sctp dport 38412 counter packets 1 bytes 68 dnat to 10.100.200.10:38412
+		iifname != "br-free5gc" tcp dport 8000 counter packets 0 bytes 0 dnat to 10.100.200.10:8000
+	}
+}
+table ip6 filter {
+	chain ts-input {
+		ip6 saddr fd7a:115c:a1e0::8236:2460 iifname "lo" counter packets 0 bytes 0 accept
+		iifname "tailscale0" counter packets 0 bytes 0 accept
+		udp dport 41641 counter packets 0 bytes 0 accept
+	}
+
+	chain ts-forward {
+		iifname "tailscale0" counter packets 0 bytes 0 meta mark set mark and 0xff00ffff xor 0x40000
+		meta mark & 0x00ff0000 == 0x00040000 counter packets 0 bytes 0 accept
+		oifname "tailscale0" counter packets 0 bytes 0 accept
+	}
+
+	chain INPUT {
+		type filter hook input priority filter; policy accept;
+		counter packets 2 bytes 144 jump ts-input
+	}
+
+	chain FORWARD {
+		type filter hook forward priority filter; policy accept;
+		counter packets 0 bytes 0 jump ts-forward
+	}
+}
+table ip6 nat {
+	chain ts-postrouting {
+		meta mark & 0x00ff0000 == 0x00040000 counter packets 0 bytes 0 xt target "MASQUERADE"
+	}
+
+	chain POSTROUTING {
+		type nat hook postrouting priority srcnat; policy accept;
+		counter packets 0 bytes 0 jump ts-postrouting
+	}
+}
+table ip mangle {
+	chain PREROUTING {
+		type filter hook prerouting priority mangle; policy accept;
+		ct state related,established counter packets 356842 bytes 70771092 meta mark set ct mark and 0xff0000
+	}
+
+	chain OUTPUT {
+		type route hook output priority mangle; policy accept;
+		ct state new meta mark & 0x00ff0000 != 0x00000000 counter packets 678 bytes 48960 ct mark set mark and 0xff0000
+	}
+
+	chain POSTROUTING {
+		type filter hook postrouting priority mangle; policy accept;
+		ip protocol sctp sctp sport 38412 counter packets 920 bytes 62064 xt target "CHECKSUM"
+	}
+}
+table ip6 mangle {
+	chain PREROUTING {
+		type filter hook prerouting priority mangle; policy accept;
+		ct state related,established counter packets 0 bytes 0 meta mark set ct mark and 0xff0000
+	}
+
+	chain OUTPUT {
+		type route hook output priority mangle; policy accept;
+		ct state new meta mark & 0x00ff0000 != 0x00000000 counter packets 0 bytes 0 ct mark set mark and 0xff0000
+	}
+}
