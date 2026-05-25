@@ -5,4 +5,5 @@ ip link set eth1 up
 ip addr show eth1 | grep inet
 echo
 
-ip route add 10.60.0.0/16 via 10.100.200.3
+sudo ip route add 10.60.0.0/16 via 10.100.200.2 dev br-free5gc
+# ip route add 10.60.0.0/16 via 10.100.200.2

@@ -50,8 +50,8 @@ configuration:
       - NIA2
       - NIA0
     cipheringOrder:
-      - NEA0
       - NEA2
+      - NEA0
   networkName:
     full: free5GC
     short: free
