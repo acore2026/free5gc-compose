@@ -1,0 +1,20 @@
+approvals_reviewer = "user"
+model = "gpt-5.5"
+model_reasoning_effort = "high"
+[projects."/home/core/free5gc-compose"]
+trust_level = "trusted"
+
+[projects."/root"]
+trust_level = "trusted"
+
+[projects."/home/core"]
+trust_level = "trusted"
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+
+[notice]
+hide_full_access_warning = true
+
+[plugins."github@openai-curated"]
+enabled = true

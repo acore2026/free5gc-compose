@@ -1,0 +1,72 @@
+{"session_id":"019dd6d9-5f02-7291-8f3a-bcc8d987067e","ts":1777426066,"text":"ls"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777426089,"text":"try rebuild upf docker image"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777426152,"text":"continue"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777426213,"text":"you might need to configure proxy: https_proxy=http://7.246.187.12:7897\nhttp_proxy=http://7.246.187.12:7897"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777426272,"text":"continue"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777426441,"text":"ok now you have sudo, continue with the deamon proxy approach"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777426466,"text":"continue"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777426579,"text":"try again"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777426630,"text":"try again"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777426690,"text":"just give me the commands"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777426805,"text":"ok docker proxy works now"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777427168,"text":"docker-compose.yaml refer to upf container in this file, modify @../docker-compose.yaml"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777427226,"text":"continue"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777427304,"text":"restart upf service with this new config + new image"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777427431,"text":"check config from smf/amf, fix this issue. since the upf config can be stale"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777427648,"text":"check ue status"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777427700,"text":"check ue status. note now this cluster connects to real ue device and ran, so no need for ueransim"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777427779,"text":"ue reg failed"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777428533,"text":"try ping 01 from upf"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777428675,"text":"upf code: https://github.com/acore2026/go-upf, you can check counters.errors"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777428947,"text":"can you enable debug port"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777429079,"text":"are counters exposed? adaptive qos is irrelavent"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777429134,"text":"inspect the logs, check if anything wrong with pdr"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777429181,"text":"inspect the logs, check if anything wrong with pdr"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777429286,"text":"can you try to build upf image, so you can expose counters through http"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777429326,"text":"try ping 03 ue"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777429706,"text":"check n3 ip address config, can you change it to eth1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500\n        inet 10.88.120.100  netmask 255.255.255.0  broadcast 0.0.0.0\n        inet6 fe80::215:5dff:febb:c03  prefixlen 64  scopeid 0x20<link>\n        ether 00:15:5d:bb:0c:03  txqueuelen 1000  (Ethernet)\n        RX packets 6782  bytes 765394 (765.3 KB)\n        RX errors 0  dropped 0  overruns 0  frame 0\n        TX packets 3787  bytes 1222492 (1.2 MB)\n        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777429870,"text":"check ue status"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777430186,"text":"inspect is gtp reachable from 10.88.120.100:2152"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777430213,"text":"inspect is gtp reachable from 10.88.120.100:2152"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777430406,"text":"try traceroute ue1"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777430640,"text":"check ue1 status"}
+{"session_id":"019dd71f-b902-7d73-a9c4-4166d7706886","ts":1777430700,"text":"try rebuild upf image, use this source: https://github.com/acore2026/go-upf.git"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777430738,"text":"check again"}
+{"session_id":"019dd6d9-8a08-78c1-bbdf-b7f4ff8ef4f5","ts":1777430784,"text":"i will try to ping from ue, which dest ip is usable"}
+{"session_id":"019dd71f-b902-7d73-a9c4-4166d7706886","ts":1777431608,"text":"check ue status, one of the ue does not have a ip"}
+{"session_id":"019dd71f-b902-7d73-a9c4-4166d7706886","ts":1777431706,"text":"continue"}
+{"session_id":"019dd71f-b902-7d73-a9c4-4166d7706886","ts":1777431992,"text":"ue is back"}
+{"session_id":"019dd71f-b902-7d73-a9c4-4166d7706886","ts":1777432788,"text":"当前运行的核心网容器已经非常完善，请帮我保存当前的容器镜像和配置，保存到/home/success5GC 中，以便下次可以直接恢复"}
+{"session_id":"019dd71f-b902-7d73-a9c4-4166d7706886","ts":1777433577,"text":"[ERRO][AMF][Gmm][amf_ue_ngap_id:RU:174,AU:53(3GPP)][supi:SUPI:imsi-460119999999001] NAS message is ciphered, but MAC verification failed 是什么原因"}
+{"session_id":"019dd71f-b902-7d73-a9c4-4166d7706886","ts":1777433612,"text":"[ERRO][AMF][Gmm][amf_ue_ngap_id:RU:174,AU:53(3GPP)][supi:SUPI:imsi-460119999999001] NAS message is ciphered, but MAC verification failed 是什么原因"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778155289,"text":"there is a free5gc docker compose cluster on this server, i tried to connect my ue (real phone), the first attempt got session established but no ue ip on my phone, second time got ue ip, but disconnected very soon afterwards. find out why"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778155389,"text":"there is a free5gc docker compose cluster on this server, i tried to connect my ue (real phone), the first attempt got session established but no ue ip on my phone, second time got ue ip, but disconnected very soon afterwards. find out why"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778155420,"text":"continue"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778155673,"text":"i am going to try again, watch the log for me"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778155980,"text":"continue"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778156410,"text":"ok check again now"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778156655,"text":"can you investigate why amf got timeout?"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778156759,"text":"ok now my ue session is online but got no ue ip"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778157141,"text":"check now"}
+{"session_id":"019e0552-31c5-7063-8d7b-7385d844b17b","ts":1778205759,"text":"set proxy for zsh and apt: http://7.246.186.111:7897"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778210197,"text":"the amf requrest to smf kept timing out, investigate"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778221315,"text":"the amf requrest to smf kept timing out, investigate"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778221528,"text":"the amf requrest to smf kept timing out, investigate"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778221606,"text":"continue"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778221945,"text":"That duplicate/local-release path is where the handler is getting stuck.: why it got stuck?"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778223122,"text":"no"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778223157,"text":"now my phone is online but got no ue ip"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778223189,"text":"continue"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778223597,"text":"ok check now, i tried again"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778223851,"text":"i want to test bandwidth between ue and this server, (android phone)"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778224308,"text":"the ips are ok, but website not reachable"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778224344,"text":"continue"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778225723,"text":"still no luck"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778228121,"text":"2026-05-08T08:14:54.521081735Z [INFO][SMF][PduSess] Received PFCP Session Modification Response\n2026-05-08T08:14:54.521400728Z [INFO][SMF][Charging] build MultiUnitUsageFromUsageReport\n2026-05-08T08:14:54.521418358Z [INFO][SMF][Charging] Handle SendConvergedChargingRequest\n2026-05-08T08:14:54.533193325Z [INFO][SMF][Charging] Send Charging Data Request[Update] successfully\n\nsmf kept printing these logs"}
+{"session_id":"019e06ab-a0f8-7323-a5e9-1a8eea1f53e5","ts":1778228377,"text":"try rebuild upf"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778233689,"text":"ok now i want external server on my router (connected to windows, network 10.88.120.0/24) to access ue ip, configure route"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778233697,"text":"ok now i want external server on my router (connected to windows, network 10.88.120.0/24) to access ue ip, examine and configure route"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778233730,"text":"continue"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778235438,"text":"give me host route add command"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778235477,"text":"give me host route add command on this server"}
+{"session_id":"019e024e-7fed-7db3-9c91-60cf9bd0e066","ts":1778235502,"text":"how to persist this"}
