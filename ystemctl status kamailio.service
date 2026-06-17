@@ -1,0 +1,60 @@
+[0;1;32m●[0m kamailio.service - Kamailio - the Open Source SIP Server
+     Loaded: loaded (]8;;file://core/usr/lib/systemd/system/kamailio.service/usr/lib/systemd/system/kamailio.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Sat 2026-06-13 12:23:56 UTC; 4min 45s ago
+       Docs: ]8;;man:kamailio(8)man:kamailio(8)]8;;
+    Process: 3260 ExecStart=/usr/sbin/kamailio -P /run/kamailio/kamailio.pid -f $CFGFILE -m $SHM_MEMORY -M $PKG_MEMORY (code=exited, status=0/SUCCESS)
+   Main PID: 3262 (kamailio)
+      Tasks: 9 (limit: 4599)
+     Memory: 6.8M (peak: 7.3M)
+        CPU: 171ms
+     CGroup: /system.slice/kamailio.service
+             ├─[0;38;5;245m3262 /usr/sbin/kamailio -P /run/kamailio/kamailio.pid -f /etc/kamailio/kamailio.cfg -m 64 -M 8[0m
+             ├─[0;38;5;245m3263 /usr/sbin/kamailio -P /run/kamailio/kamailio.pid -f /etc/kamailio/kamailio.cfg -m 64 -M 8[0m
+             ├─[0;38;5;245m3264 /usr/sbin/kamailio -P /run/kamailio/kamailio.pid -f /etc/kamailio/kamailio.cfg -m 64 -M 8[0m
+             ├─[0;38;5;245m3265 /usr/sbin/kamailio -P /run/kamailio/kamailio.pid -f /etc/kamailio/kamailio.cfg -m 64 -M 8[0m
+             ├─[0;38;5;245m3266 /usr/sbin/kamailio -P /run/kamailio/kamailio.pid -f /etc/kamailio/kamailio.cfg -m 64 -M 8[0m
+             ├─[0;38;5;245m3267 /usr/sbin/kamailio -P /run/kamailio/kamailio.pid -f /etc/kamailio/kamailio.cfg -m 64 -M 8[0m
+             ├─[0;38;5;245m3268 /usr/sbin/kamailio -P /run/kamailio/kamailio.pid -f /etc/kamailio/kamailio.cfg -m 64 -M 8[0m
+             ├─[0;38;5;245m3269 /usr/sbin/kamailio -P /run/kamailio/kamailio.pid -f /etc/kamailio/kamailio.cfg -m 64 -M 8[0m
+             └─[0;38;5;245m3270 /usr/sbin/kamailio -P /run/kamailio/kamailio.pid -f /etc/kamailio/kamailio.cfg -m 64 -M 8[0m
+
+Jun 13 12:23:56 core kamailio[3260]:              udp: 10.100.200.99 [10.100.200.99]:5060
+Jun 13 12:23:56 core kamailio[3260]:              tcp: 10.100.200.99 [10.100.200.99]:5060
+Jun 13 12:23:56 core kamailio[3260]: Aliases:
+Jun 13 12:23:56 core kamailio[3260]:              *: ims.free5gc.org:*
+Jun 13 12:23:56 core kamailio[3260]:              *: 10.100.200.99:*
+Jun 13 12:23:56 core kamailio[3260]: INFO: <core> [core/tcp_main.c:5205]: init_tcp(): using epoll_lt as the io watch method (auto detected)
+Jun 13 12:23:56 core /usr/sbin/kamailio[3262]: INFO: <core> [main.c:3189]: main(): processes (at least): 9 - shm size: 67108864 - pkg size: 8388608
+Jun 13 12:23:56 core /usr/sbin/kamailio[3262]: INFO: <core> [core/udp_server.c:163]: probe_max_receive_buffer(): SO_RCVBUF is initially 212992 for fd 5
+Jun 13 12:23:56 core /usr/sbin/kamailio[3262]: INFO: <core> [core/udp_server.c:233]: probe_max_receive_buffer(): SO_RCVBUF is finally 425984 on fd 5
+Jun 13 12:23:56 core systemd[1]: Started kamailio.service - Kamailio - the Open Source SIP Server.
+
+[0;1;32m●[0m free5gc-disable-offload.service - Disable checksum and segmentation offload for free5GC IMS debugging
+     Loaded: loaded (]8;;file://core/etc/systemd/system/free5gc-disable-offload.service/etc/systemd/system/free5gc-disable-offload.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (exited)[0m since Sat 2026-06-13 12:23:56 UTC; 4min 45s ago
+    Process: 3274 ExecStart=/usr/local/sbin/free5gc-disable-offload (code=exited, status=0/SUCCESS)
+   Main PID: 3274 (code=exited, status=0/SUCCESS)
+        CPU: 33ms
+
+Jun 13 12:23:56 core systemd[1]: Starting free5gc-disable-offload.service - Disable checksum and segmentation offload for free5GC IMS debugging...
+Jun 13 12:23:56 core free5gc-disable-offload[3274]: free5gc-disable-offload: disabled offload on host eth1
+Jun 13 12:23:56 core free5gc-disable-offload[3274]: free5gc-disable-offload: disabled offload on host br-free5gc
+Jun 13 12:23:56 core free5gc-disable-offload[3274]: free5gc-disable-offload: disabled offload on upf:eth0
+Jun 13 12:23:56 core free5gc-disable-offload[3274]: free5gc-disable-offload: disabled offload on upf:upfusr0
+Jun 13 12:23:56 core systemd[1]: Finished free5gc-disable-offload.service - Disable checksum and segmentation offload for free5GC IMS debugging.
+
+[0;1;32m●[0m free5gc-ue-routes.service - Free5GC UE pool routes via UPF
+     Loaded: loaded (]8;;file://core/etc/systemd/system/free5gc-ue-routes.service/etc/systemd/system/free5gc-ue-routes.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (exited)[0m since Sat 2026-06-13 12:23:56 UTC; 4min 45s ago
+    Process: 3242 ExecStartPre=/bin/sh -c for i in $(seq 1 60); do ip link show br-free5gc >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1 (code=exited, status=0/SUCCESS)
+    Process: 3245 ExecStart=/usr/sbin/ip route replace 10.60.0.0/16 via 10.100.200.3 dev br-free5gc (code=exited, status=0/SUCCESS)
+    Process: 3247 ExecStart=/usr/sbin/ip route replace 10.61.0.0/16 via 10.100.200.3 dev br-free5gc (code=exited, status=0/SUCCESS)
+    Process: 3249 ExecStart=/usr/sbin/ip route replace 10.62.0.0/16 via 10.100.200.3 dev br-free5gc (code=exited, status=0/SUCCESS)
+    Process: 3251 ExecStart=/usr/sbin/ip route replace 10.63.0.0/16 via 10.100.200.3 dev br-free5gc (code=exited, status=0/SUCCESS)
+    Process: 3254 ExecStart=/usr/sbin/ip route replace 10.64.0.0/16 via 10.100.200.3 dev br-free5gc (code=exited, status=0/SUCCESS)
+    Process: 3255 ExecStart=/usr/sbin/ip route replace 10.65.0.0/16 via 10.100.200.3 dev br-free5gc (code=exited, status=0/SUCCESS)
+   Main PID: 3255 (code=exited, status=0/SUCCESS)
+        CPU: 19ms
+
+Jun 13 12:23:56 core systemd[1]: Starting free5gc-ue-routes.service - Free5GC UE pool routes via UPF...
+Jun 13 12:23:56 core systemd[1]: Finished free5gc-ue-routes.service - Free5GC UE pool routes via UPF.

@@ -259,8 +259,9 @@ echo "  • 签约数据已保留，UE可以重新注册"
 echo ""
 echo -e "${YELLOW}重启所有网元...${NC}"
 
-docker-compose down
-docker-compose up -d
+# docker-compose down
+# docker-compose up -d
+./restart-all.sh
 echo -e "${GREEN}所有网元已重启完成！${NC}"
 
 echo ""

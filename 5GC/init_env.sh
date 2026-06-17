@@ -1,3 +1,4 @@
+# sudo ip link set eth1 down && sleep 1 && sudo ip link set eth1 up
 echo [步骤1] 配置网络IP地址
 ip addr add 10.88.120.100/24 dev eth1 2>/dev/null || echo IP已存在
 ip addr add 10.88.120.99/24 dev eth1 2>/dev/null || echo IP已存在
@@ -24,6 +25,7 @@ echo
 sudo ip addr add 10.100.200.99/24 dev br-free5gc
 echo [步骤3] UPF---IMS网络打通
 
+sudo ip addr add 192.168.1.11/24 dev eth1
 
 
 
