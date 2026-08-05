@@ -60,12 +60,11 @@ services:
 
   free5gc-amf:
     container_name: amf
-    image: free5gc/amf:v4.2.1
+    image: free5gc/amf:buildv16
     command: ./amf -c ./config/amfcfg.yaml
     ports:
-      - "10.88.120.100:38412:38412/sctp"
-    expose:
-      - "8000"
+      - "0.0.0.0:38412:38412/sctp"
+      - "8000:8000"
     volumes:
       - ./config/amfcfg.yaml:/free5gc/config/amfcfg.yaml
       - ./cert:/free5gc/cert
