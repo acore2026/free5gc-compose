@@ -11,8 +11,8 @@ http://archive.ubuntu.com/ubuntu/pool/universe/k/kamailio/kamailio-ims-modules_5
 
 下载后上传到VM：
 ```powershell
-scp kamailio_5.5.4-1_amd64.deb root@10.88.120.99:/home/core/ims-debs/
-scp kamailio-ims-modules_5.5.4-1_amd64.deb root@10.88.120.99:/home/core/ims-debs/
+scp kamailio_5.5.4-1_amd64.deb root@10.88.120.100:/home/core/ims-debs/
+scp kamailio-ims-modules_5.5.4-1_amd64.deb root@10.88.120.100:/home/core/ims-debs/
 ```
 
 ## 二、安装IMS
@@ -47,7 +47,7 @@ kamailio -f /etc/kamailio/kamailio.cfg -DD -E
 - ims: 语音通话 (IP池: 10.62.0.0/16, 5QI=5)
 
 ### IMS服务器
-- SIP地址: 10.88.120.99:5060
+- SIP地址: 10.100.200.99:5060
 - Domain: ims.free5gc.org
 
 ## 四、手机SIM卡参数
@@ -78,7 +78,7 @@ slices:
 
 # IMS配置（语音）
 ims:
-  address: 10.88.120.99
+  address: 10.100.200.99
   port: 5060
 ```
 

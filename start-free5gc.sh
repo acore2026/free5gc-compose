@@ -22,4 +22,4 @@ docker exec upf iptables -t nat -L POSTROUTING -n -v
 
 echo \核心网启动完成！\
 echo \AMF N2接口: 10.88.120.100:38412\
-echo \WebUI: http://10.88.120.99:5000\
+echo \WebUI: http://10.88.120.100:5000\

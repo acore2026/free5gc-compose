@@ -15,9 +15,9 @@ sudo kamailio -f /etc/kamailio/kamailio-ims.cfg -DD -E -P /var/run/kamailio/kama
 sleep 2
 
 # Check if IMS is running
-if netstat -tuln | grep -q "10.88.120.99:5060"; then
+if netstat -tuln | grep -q "10.100.200.99:5060"; then
     echo "✓ IMS Service Started Successfully"
-    echo "  P-CSCF: 10.88.120.99:5060"
+    echo "  P-CSCF: 10.100.200.99:5060"
     echo "  Domain: ims.free5gc.org"
     
     # Show kamailio processes
@@ -30,8 +30,8 @@ fi
 echo ""
 echo "IMS Configuration:"
 echo "  - DNN: ims"
-echo "  - P-CSCF IP: 10.88.120.99"
-echo "  - DNS: 10.88.120.99"
+echo "  - P-CSCF IP: 10.100.200.99"
+echo "  - DNS: 10.100.200.99"
 echo "  - SIP Port: 5060"
 echo ""
 echo "Usage:"

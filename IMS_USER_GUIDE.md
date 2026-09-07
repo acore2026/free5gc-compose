@@ -1,7 +1,7 @@
 # IMS通话使用指南
 
 ## IMS服务部署状态
-- P-CSCF地址：10.88.120.99:5060
+- P-CSCF地址：10.100.200.99:5060
 - SIP协议：UDP/TCP
 - IMS域名：ims.free5gc.org
 - 服务状态：运行中
@@ -86,7 +86,7 @@ AMF: 8000
 根据日志分析，ims PDU Session建立后约8秒被UE主动释放。
 
 可能原因：
-1. **IMS服务未被发现**：UE无法连接到P-CSCF (10.88.120.99:5060)
+1. **IMS服务未被发现**：UE无法连接到P-CSCF (10.100.200.99:5060)
 2. **IMS注册失败**：UE尝试IMS注册但失败，导致释放会话
 3. **UE配置问题**：手机未正确配置IMS参数
 
@@ -95,10 +95,10 @@ AMF: 8000
 **方案1：检查网络连通性**
 ```bash
 # 在UE侧ping P-CSCF地址（需要UE具备ping功能）
-ping 10.88.120.99
+ping 10.100.200.99
 
 # 检查SIP端口可达性
-nc -u -v 10.88.120.99 5060
+nc -u -v 10.100.200.99 5060
 ```
 
 **方案2：验证IMS服务状态**
@@ -116,7 +116,7 @@ sudo journalctl -u kamailio -f
 **方案3：手动触发IMS注册测试**
 ```bash
 # 使用SIP客户端测试（需要安装sipcmd或sipp）
-sipcmd -u 001012345678910 -p 10.64.0.x -h 10.88.120.99 -r REGISTER
+sipcmd -u 001012345678910 -p 10.64.0.x -h 10.100.200.99 -r REGISTER
 ```
 
 **方案4：检查UE配置**
@@ -156,10 +156,10 @@ sudo tail -f /var/log/syslog | grep kamailio
 sudo apt install sipp
 
 # IMS注册测试
-sipp -sn uac -i 10.64.0.x -p 5060 10.88.120.99:5060 -m 1
+sipp -sn uac -i 10.64.0.x -p 5060 10.100.200.99:5060 -m 1
 
 # IMS呼叫测试
-sipp -sn uac_cseq -i 10.64.0.x -p 5060 10.88.120.99:5060 -m 1
+sipp -sn uac_cseq -i 10.64.0.x -p 5060 10.100.200.99:5060 -m 1
 ```
 
 #### Kamailio内置测试：
@@ -214,7 +214,7 @@ kamctl ul show 001012345678910
 
 1. **验证UE IMS支持**：确认手机支持VoLTE/IMS功能
 2. **检查UE配置**：确保UE配置了ims DNN和P-CSCF地址
-3. **测试IMS连通性**：在UE侧测试能否连接10.88.120.99:5060
+3. **测试IMS连通性**：在UE侧测试能否连接10.100.200.99:5060
 4. **捕获SIP消息**：使用tcpdump捕获IMS注册和呼叫过程
 5. **分析日志**：查看Kamailio日志确认IMS注册和呼叫流程
 
