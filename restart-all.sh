@@ -1,17 +1,19 @@
 #!/bin/bash
 #
-# 核心网 + 基站指标上报 一键重启脚本
+# 核心网一键重启脚本
 #
 # 环境变量(可选,都有默认值):
-#   QOS_MODE=ran|ran-udp|mock-ran|auto   QoSModule 启动模式(默认 mock-ran)
-#   COLLECTOR_URL=http://...:28448/api/v1/qos   采集上报目标(默认 192.168.1.10:28448)
-#   GNB_HOST=10.88.120.212           基站 SSH 地址
-#   RAN_UDP_ENDPOINT=10.88.0.3:9999  gNB UDP 地址(auto 判定 udp 是否生效用)
+#   QOS_MODE=ran-udp|mock-ran        QoSModule 启动模式(默认 mock-ran)
+#   FRONTEND_URL=http://...:28448/api/v1/qos   前端上报目标(默认 192.168.1.10:28448, 仅 mock-ran 用)
+#   RAN_UDP_ENDPOINT=10.88.0.3:9999  远程基站 UDP 地址(ran-udp 模式用)
 #
-# 采集启动与 QoS 模式关联(step 10, collector --auto-ran 自动跟随实际生效档):
-#   ran / mock-ran / auto(UDP 不通) → 启动采集(auto-ran 跟随 mock/real)
-#   ran-udp                           → 不启动采集(udp 模式针对模拟 gNB, 采集真实基站无意义)
-# 注: SMF/ngap 方案已废弃, start-qos.sh 不再有 mode=ngap, auto 也不带 SMF 第3档。
+# 上报由下发目标自己负责, 本机不再跑任何中间采集器:
+#   mock-ran → mock-ran 进程自己 POST 前端
+#   ran-udp  → 远程基站自己 POST 前端
+# 二者互斥, 故前端不会同时收到两路数据(前端 schema 无数据源标识字段, 无法区分合并)。
+#
+# 已退役: mode=ran(默认目标 10.88.120.212 已下线)、mode=auto(三档回退会让远程基站与
+#         mock-ran 两个上报源同时活着)、mode=ngap/SMF、collector.py 采集器全家。
 #
 
 set -e
@@ -32,7 +34,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-TOTAL=10
+TOTAL=9
 
 step() { echo -e "${BLUE}[$1/$TOTAL] $2${NC}"; }
 ok() { echo -e "${GREEN}  ✓ $1${NC}"; }
@@ -129,11 +131,11 @@ if [ ! -x "$QOS_SCRIPT" ]; then
     fail "未找到 QoS 脚本: $QOS_SCRIPT"
 fi
 # 地址可用环境变量覆盖，例如:
-#   RAN_URL=http://10.88.120.212:80/api/v1/qos/update \
 #   RAN_UDP_ENDPOINT=10.88.0.3:9999 RAN_UDP_ACK=1 \
+#   FRONTEND_URL=http://192.168.1.10:28448/api/v1/qos \
 #   ./restart-all.sh
-# QOS_MODE=ran|ran-udp|mock-ran|auto (默认 mock-ran)。采集启动与模式关联:
-#   ran/mock-ran → 启动采集; ran-udp → 不启动; auto → 按实际回退判定(step 10)
+# QOS_MODE=ran-udp|mock-ran (默认 mock-ran)。上报由下发目标自己负责:
+#   mock-ran → mock-ran 进程自报前端; ran-udp → 远程基站自报前端。本机不起采集进程。
 # QOS_BIND 默认 0.0.0.0:7400，须与 MASQUE Proxy 配置的目标 UDP 端口一致
 if "$QOS_SCRIPT" "$QOS_MODE"; then
     ok "QoSModule ($QOS_MODE)"
@@ -171,55 +173,9 @@ if [ "$READY" != "1" ]; then
 fi
 ok "MASQUE Proxy 已就绪 (pid=$MPID, $MASQUE_PROXY_URL)"
 
-COLLECTOR="/home/core/QoSModule/ranreporter/collector.py"
-COLLECTOR_LOG="/home/core/QoSModule/logs/collector.log"
-COLLECTOR_PID="/tmp/ranreporter-collector.pid"
-COLLECTOR_URL="${COLLECTOR_URL:-http://192.168.1.10:28448/api/v1/qos}"
-GNB_HOST="${GNB_HOST:-10.88.120.212}"
-# 采集启动与 QoS 模式关联(collector --auto-ran 跟随实际生效档)。
-# ran/mock-ran → 启动采集; ran-udp → 不启动; auto → 探实际回退(udp 端点有回包=ran-udp, 否则启动)
-effective_qos_mode() {
-    case "$1" in
-        ran|ran-udp|mock-ran) echo "$1"; return ;;
-    esac
-    local udp_ep="${RAN_UDP_ENDPOINT:-10.88.0.3:9999}"
-    if python3 /home/core/QoSModule/ranreporter/udp_probe.py "$udp_ep" >/dev/null 2>&1; then
-        echo "ran-udp"
-    else
-        echo "collect"
-    fi
-}
-EFF_MODE=$(effective_qos_mode "$QOS_MODE")
-step 10 "启动 RANReporter 指标上报 (collector.py --auto-ran 跟随实际生效档: mock/real/smf_bridge)..."
-if [ "$EFF_MODE" = "ran-udp" ]; then
-    warn "QoS 生效模式=ran-udp, 跳过采集上报 (udp 模式不采集,不影响核心网)"
-else
-    # 幂等停止旧实例(首次运行无 PID 也安全)
-    if [ -f "$COLLECTOR_PID" ]; then
-        kill "$(cat "$COLLECTOR_PID")" 2>/dev/null || true
-    fi
-    pkill -f "QoSModule/ranreporter/collector.py" 2>/dev/null || true
-    sleep 1
-    # --auto-ran: collector 每轮读 qos-module.log 判定 QoSModule 实际走哪档(-> done):
-    #   mock-ran 档 -> 读 mock /metrics; udp-ran/ran-udp 档 -> SSH 真 gNB。
-    # (SMF/ngap 已废弃不再产生该档; collector 仍保留 smf_bridge 兼容旧二进制)
-    # mock 路径不依赖 SSH, 故 SSH 不通也启动(real 档采空, mock 档仍正常上报)。
-    MOCK_RAN_URL="${MOCK_RAN_URL:-http://127.0.0.1:18081}"
-    if ssh -o BatchMode=yes -o ConnectTimeout=3 "$GNB_HOST" true 2>/dev/null; then
-        ok "基站 $GNB_HOST SSH 可达 (real 档可采真 gNB trace)"
-    else
-        warn "基站 $GNB_HOST SSH 不可达 (real 档将采空; mock 档仍正常上报)"
-    fi
-    nohup python3 "$COLLECTOR" --auto-ran "$MOCK_RAN_URL" --host "$GNB_HOST" --url "$COLLECTOR_URL" > "$COLLECTOR_LOG" 2>&1 &
-    echo $! > "$COLLECTOR_PID"
-    sleep 1
-    if kill -0 "$(cat "$COLLECTOR_PID")" 2>/dev/null; then
-        ok "RANReporter 已启动 (pid=$(cat "$COLLECTOR_PID"), --auto-ran $MOCK_RAN_URL)"
-        info "日志: tail -f $COLLECTOR_LOG"
-    else
-        warn "RANReporter 启动后即退出,查看日志: $COLLECTOR_LOG (不影响核心网)"
-    fi
-fi
+# 原 step 10(启动 RANReporter collector.py)已删除: 上报责任下放到下发目标自己——
+# mock-ran 模式由 mock-ran 进程自报前端(step 8 里 start-qos.sh 起 mock-ran 时已带
+# --frontend-url), ran-udp 模式由远程基站自报前端。本机不再有任何中间采集进程。
 
 echo ""
 echo "=========================================="
@@ -228,4 +184,4 @@ echo "=========================================="
 systemctl is-active kamailio.service free5gc-disable-offload.service free5gc-ue-routes.service
 "$QOS_SCRIPT" status 2>/dev/null || true
 pgrep -af "proxy -proxy" 2>/dev/null || true
-pgrep -af "QoSModule/ranreporter/collector.py" 2>/dev/null || true
+pgrep -af "ranreporter/mock_ran.py" 2>/dev/null || true
