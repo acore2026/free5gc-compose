@@ -29,7 +29,7 @@ check_env() {
     
     echo "清理现有UE进程..."
     docker exec $CONTAINER pkill -9 nr-ue 2>/dev/null || true
-    /home/core/clean_ue_context.sh --all 2>/dev/null || true
+    /home/core/free5gc-compose-new/clean_ue_context.sh --all 2>/dev/null || true
     sleep 2
     
     echo "环境检查完成"

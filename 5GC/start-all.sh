@@ -3,7 +3,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-COMPOSE_DIR="/home/core"
+COMPOSE_DIR="/home/core/free5gc-compose-new"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

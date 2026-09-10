@@ -1,6 +1,6 @@
 #!/bin/bash
 
-COMPOSE_DIR="/home/core"
+COMPOSE_DIR="/home/core/free5gc-compose-new"
 
 echo "=========================================="
 echo "     Free5GC + IMS 一键停止脚本"

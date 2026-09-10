@@ -22,7 +22,7 @@ sleep 2
 echo
 
 echo "[步骤3] 清理AMF中的UE上下文"
-/home/core/clean_ue_context.sh --all
+/home/core/free5gc-compose-new/clean_ue_context.sh --all
 echo
 
 echo "[步骤4] 验证UE已停止"

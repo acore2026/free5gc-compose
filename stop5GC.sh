@@ -1,13 +1,13 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-START5GC_DIR="$SCRIPT_DIR/start5GC"
+COMPOSE_DIR="/home/core/free5gc-compose-new"
 
 echo "========================================="
 echo "   Free5GC 停止脚本"
 echo "========================================="
 
-cd "$START5GC_DIR"
+cd "$COMPOSE_DIR"
 docker-compose down
 
 echo ""

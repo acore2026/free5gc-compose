@@ -1,6 +1,6 @@
 #!/bin/bash
 
-COMPOSE_DIR="/home/core"
+COMPOSE_DIR="/home/core/free5gc-compose-new"
 
 echo "停止并删除所有5GC容器..."
 cd "$COMPOSE_DIR"

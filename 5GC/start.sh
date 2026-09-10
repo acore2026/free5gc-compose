@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-COMPOSE_DIR="/home/core"
+COMPOSE_DIR="/home/core/free5gc-compose-new"
 
 echo "=========================================="
 echo "     Free5GC 核心网容器启动脚本"

@@ -15,9 +15,9 @@ if lsmod | grep -q gtp5g; then
   rmmod gtp5g 2>/dev/null
 fi
 
-if [ -f /home/core/gtp5g-v0.9.5/gtp5g.ko ]; then
+if [ -f /home/core/gtp5g/gtp5g.ko ]; then
   echo 加载预编译gtp5g模块
-  insmod /home/core/gtp5g-v0.9.5/gtp5g.ko
+  insmod /home/core/gtp5g/gtp5g.ko
   lsmod | grep gtp5g
   echo gtp5g模块加载成功
 else
@@ -32,7 +32,7 @@ echo Docker已重启
 echo
 
 echo [步骤4] 启动核心网容器
-cd /home/core
+cd /home/core/free5gc-compose-new
 sysctl -w net.ipv4.ip_forward=1
 
 docker-compose up -d db

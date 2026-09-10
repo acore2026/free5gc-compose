@@ -16,9 +16,9 @@ docker run -d \
     --network host \
     --privileged \
     --restart unless-stopped \
-    -v /home/core/config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml \
-    -v /home/core/config/uecfg.yaml:/ueransim/config/uecfg.yaml \
-    -v /home/core/config/uecfg-910.yaml:/ueransim/config/uecfg-910.yaml \
+    -v /home/core/free5gc-compose-new/config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml \
+    -v /home/core/free5gc-compose-new/config/uecfg.yaml:/ueransim/config/uecfg.yaml \
+    -v /home/core/free5gc-compose-new/config/uecfg-910.yaml:/ueransim/config/uecfg-910.yaml \
     free5gc/ueransim:latest \
     bash -c "./nr-gnb -c ./config/gnbcfg.yaml"
 
