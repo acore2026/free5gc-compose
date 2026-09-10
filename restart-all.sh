@@ -3,7 +3,7 @@
 # 核心网 + 基站指标上报 一键重启脚本
 #
 # 环境变量(可选,都有默认值):
-#   QOS_MODE=ran|ran-udp|mock-ran|auto   QoSModule 启动模式(默认 auto)
+#   QOS_MODE=ran|ran-udp|mock-ran|auto   QoSModule 启动模式(默认 mock-ran)
 #   COLLECTOR_URL=http://...:28448/api/v1/qos   采集上报目标(默认 192.168.1.10:28448)
 #   GNB_HOST=10.88.120.212           基站 SSH 地址
 #   RAN_UDP_ENDPOINT=10.88.0.3:9999  gNB UDP 地址(auto 判定 udp 是否生效用)
@@ -16,7 +16,15 @@
 
 set -e
 
-cd /home/core/free5gc-compose-new
+cd "${COMPOSE_DIR:-/home/core/free5gc-compose-new}"
+
+QOS_SCRIPT="${QOS_SCRIPT:-/home/core/QoSModule/scripts/start-qos.sh}"
+QOS_MODE="${QOS_MODE:-mock-ran}"
+MASQUE_DIR="${MASQUE_DIR:-/home/core/masque/masque/proxy}"
+MASQUE_LOG="${MASQUE_LOG:-/home/core/masque/masque/proxy.log}"
+MASQUE_PID_FILE="${MASQUE_PID_FILE:-/tmp/masque-proxy.pid}"
+MASQUE_PROXY_URL="${MASQUE_PROXY_URL:-${MASQUE_PROXY_TARGET:-https://10.88.120.100:443}}"
+MASQUE_GOPROXY="${MASQUE_GOPROXY:-${GOPROXY:-https://goproxy.cn,direct}}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -28,17 +36,28 @@ TOTAL=10
 
 step() { echo -e "${BLUE}[$1/$TOTAL] $2${NC}"; }
 ok() { echo -e "${GREEN}  ✓ $1${NC}"; }
+warn() { echo -e "${YELLOW}  $1${NC}"; }
+info() { echo -e "${BLUE}  $1${NC}"; }
 fail() { echo -e "${RED}  ✗ $1${NC}"; exit 1; }
 
 echo "=========================================="
 echo "     核心网重启脚本"
 echo "=========================================="
 
-step 1 "停止 IMS 服务..."
+step 1 "停止 IMS / QoS / MASQUE 服务..."
+if [ -f "$MASQUE_PID_FILE" ]; then
+    kill "$(cat "$MASQUE_PID_FILE")" 2>/dev/null || true
+    rm -f "$MASQUE_PID_FILE"
+fi
+pkill -f "go run ./cmd/proxy -proxy" 2>/dev/null || true
+pkill -f "/proxy -proxy https://" 2>/dev/null || true
+if [ -x "$QOS_SCRIPT" ]; then
+    "$QOS_SCRIPT" stop >/dev/null 2>&1 || true
+fi
 systemctl stop free5gc-ue-routes.service 2>/dev/null || true
 systemctl stop free5gc-disable-offload.service 2>/dev/null || true
 systemctl stop kamailio.service 2>/dev/null || true
-ok "IMS 服务已停止"
+ok "IMS / QoS / MASQUE 服务已停止"
 
 step 2 "停止 Docker 容器..."
 docker-compose down || fail "Docker 容器停止失败"
@@ -105,16 +124,15 @@ ok "kamailio"
 systemctl restart free5gc-disable-offload.service || fail "free5gc-disable-offload 启动失败"
 ok "free5gc-disable-offload"
 
-QOS_SCRIPT="/home/core/QoSModule/scripts/start-qos.sh"
-QOS_MODE="${QOS_MODE:-mock-ran}"
 step 8 "启动 QoSModule ($QOS_MODE 模式)..."
-# 先幂等停止可能残留的旧进程（首次运行无 PID 文件也安全）
-"$QOS_SCRIPT" stop >/dev/null 2>&1 || true
+if [ ! -x "$QOS_SCRIPT" ]; then
+    fail "未找到 QoS 脚本: $QOS_SCRIPT"
+fi
 # 地址可用环境变量覆盖，例如:
 #   RAN_URL=http://10.88.120.212:80/api/v1/qos/update \
 #   RAN_UDP_ENDPOINT=10.88.0.3:9999 RAN_UDP_ACK=1 \
 #   ./restart-all.sh
-# QOS_MODE=ran|ran-udp|mock-ran|auto (默认 auto)。采集启动与模式关联:
+# QOS_MODE=ran|ran-udp|mock-ran|auto (默认 mock-ran)。采集启动与模式关联:
 #   ran/mock-ran → 启动采集; ran-udp → 不启动; auto → 按实际回退判定(step 10)
 # QOS_BIND 默认 0.0.0.0:7400，须与 MASQUE Proxy 配置的目标 UDP 端口一致
 if "$QOS_SCRIPT" "$QOS_MODE"; then
@@ -123,23 +141,35 @@ else
     fail "QoSModule 启动失败，查看日志: /home/core/QoSModule/logs/qos-module.log"
 fi
 
-MASQUE_DIR="/home/core/masque/masque/proxy"
-MASQUE_LOG="/home/core/masque/masque/proxy.log"
-MASQUE_PROXY_URL="${MASQUE_PROXY_URL:-https://10.88.120.100:443}"
 step 9 "启动 MASQUE Proxy..."
-# 幂等停止旧实例（go run 主进程及其编译产物子进程都带 -proxy 参数）
-pkill -f "go run ./cmd/proxy -proxy" 2>/dev/null || true
-pkill -f "/proxy -proxy https://" 2>/dev/null || true
-sleep 1
-# -proxy 地址须与 step 6 在 eth1 上配置的 IP 一致（默认 10.88.120.100）
-# 子 shell + nohup 后台运行，避免改变本脚本 cwd
-( cd "$MASQUE_DIR" && nohup go run ./cmd/proxy -proxy "$MASQUE_PROXY_URL" > "$MASQUE_LOG" 2>&1 & )
-sleep 2
-if pgrep -f "proxy -proxy $MASQUE_PROXY_URL" >/dev/null; then
-    ok "MASQUE Proxy ($MASQUE_PROXY_URL)"
-else
-    fail "MASQUE Proxy 启动失败，查看日志: $MASQUE_LOG"
+if [ ! -d "$MASQUE_DIR" ]; then
+    fail "未找到 MASQUE 目录: $MASQUE_DIR"
 fi
+# -proxy 地址须与 step 6 在 eth1 上配置的 IP 一致（默认 10.88.120.100）
+# exec 保持后台 PID 对应 go run，且不改变父脚本工作目录。
+(
+    cd "$MASQUE_DIR" || exit 1
+    exec env GOPROXY="$MASQUE_GOPROXY" nohup go run ./cmd/proxy -proxy "$MASQUE_PROXY_URL"
+) > "$MASQUE_LOG" 2>&1 &
+MPID=$!
+echo "$MPID" > "$MASQUE_PID_FILE"
+READY=0
+for i in $(seq 1 30); do
+    if ! kill -0 "$MPID" 2>/dev/null; then
+        tail -10 "$MASQUE_LOG" 2>/dev/null || true
+        fail "MASQUE Proxy 启动失败，查看日志: $MASQUE_LOG"
+    fi
+    if grep -q "MASQUE Proxy ready" "$MASQUE_LOG"; then
+        READY=1
+        break
+    fi
+    sleep 1
+done
+if [ "$READY" != "1" ]; then
+    tail -10 "$MASQUE_LOG" 2>/dev/null || true
+    fail "MASQUE Proxy 未就绪，查看日志: $MASQUE_LOG"
+fi
+ok "MASQUE Proxy 已就绪 (pid=$MPID, $MASQUE_PROXY_URL)"
 
 COLLECTOR="/home/core/QoSModule/ranreporter/collector.py"
 COLLECTOR_LOG="/home/core/QoSModule/logs/collector.log"
